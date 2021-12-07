@@ -1,4 +1,4 @@
-import { Queue, Worker, QueueEvents } from 'bullmq'
+import { Queue, Worker, QueueEvents, RedisConnection } from 'bullmq'
 import { spawn } from 'child_process'
 import { createBullBoard } from 'bull-board'
 import { BullMQAdapter } from 'bull-board/bullMQAdapter'
