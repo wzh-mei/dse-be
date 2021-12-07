@@ -9,73 +9,72 @@ import { generateSimulationsWithDpSetList } from './jobhelper'
 
 import { aggregateData } from './datahelper'
 
-// const ijr = {
-//   key: 'streams.0.ops.1.inject_rate',
-//   value: [0.1, 0.11, 0.12]
-// }
+const ijr = {
+  key: 'streams.0.ops.1.inject_rate',
+  value: [0.1, 0.11, 0.12]
+}
 
 // const bs = { key: 'streams.0.batch_size', value: [-1, 1] }
 
-// const genStreamsRes = new DPSetList([], [])
+const genStreamsRes = new DPSetList([], [])
 
-// genStreamsRes.desProduct(ijr).desProduct(bs)
+genStreamsRes.desProduct(ijr)
+const genedFiles = generateDPInputFiles(
+  '../extra/stream/gen-streams',
+  '../extra/stream/stream_core_4c_to_all.json',
+  'stream',
+  'DP_STREAM_FILE',
+  genStreamsRes
+)
+console.log(genedFiles)
 
-// const genedFiles = generateDPInputFiles(
-//   '../extra/stream/gen-streams',
-//   '../extra/stream/stream_core_4c_to_all.json',
-//   'stream',
-//   'DP_STREAM_FILE',
-//   genStreamsRes
-// )
-// console.log(genedFiles)
-
-// const dp3: DPRange = {
-//   key: 'DP_STREAM_FILE',
-//   value: genedFiles
-// }
+const dp3: DPRange = {
+  key: 'DP_STREAM_FILE',
+  value: genedFiles
+}
 
 // const dp4: DPRange = {
 //   key: 'DP_IGR_ARB_PHASE',
 //   value: [0.06, 0.07]
 // }
-// const dpset = new DPSetList([], [])
-// dpset.desProduct(dp3).desProduct(dp4)
+const dpset = new DPSetList([], [])
+dpset.desProduct(dp3)
 
-// const genedDpCSVs = generateDPCSVFiles(
-//   '../extra/dps/gen',
-//   '../extra/dps/cofs_dp.csv',
-//   'cofs_dp_gen',
-//   dpset
-// )
+const genedDpCSVs = generateDPCSVFiles(
+  '../extra/dps/gen',
+  '../extra/dps/cofs_dp.csv',
+  'cofs_dp_gen',
+  dpset
+)
 
 // // genedDpCSVs.then(data => {
 // //   console.log(data)
 // //   console.log(data.map(e => e.param))
 // // })
 
-// const subfolder = new Date().toISOString().replace(/\:/g, '.')
+const subfolder = new Date().toISOString().replace(/\:/g, '.')
 
-// genedDpCSVs.then(csvs => {
-//   generateSimulationsWithDpSetList(
-//     'maywzh',
-//     '../extra/run',
-//     subfolder,
-//     '../extra/bin/sample_compute_die_8x8_top.exe',
-//     csvs,
-//     '5us',
-//     '27000@10.239.44.116'
-//   )
-// })
+genedDpCSVs.then(csvs => {
+  generateSimulationsWithDpSetList(
+    'maywzh',
+    '../extra/run',
+    subfolder,
+    '../extra/bin/sample_compute_die_8x8_top.exe',
+    csvs,
+    '5us',
+    '27000@10.239.44.116'
+  )
+})
 
-const ans = aggregateData(
-  '../extra/run/fffnsins'[('0', '2', '4')],
-  'sim_param.json',
-  'received_packet_statistic.csv',
-  'layer IV port 0',
-  'Total BW'
-)
+// const ans = aggregateData(
+//   '../extra/run/fffnsins'[('0', '2', '4')],
+//   'sim_param.json',
+//   'received_packet_statistic.csv',
+//   'layer IV port 0',
+//   'Total BW'
+// )
 
-console.log(ans)
+// console.log(ans)
 
 // fs.writeFileSync('../extra/out.json', JSON.stringify({ data: ans }))
 
