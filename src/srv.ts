@@ -2,13 +2,19 @@ import { getUserQueue, bullBoardRouter } from './queueworker'
 import { ApiRouter } from './api'
 import * as cors from 'cors'
 import * as express from 'express'
+import * as dotenv from 'dotenv'
+
+dotenv.config({ path: '../.env', debug: true })
+
 // const expressPino = require('express-pino-logger')
 
 // const logger = pino({ level: process.env.LOG_LEVEL || 'info' })
 // const expressLogger = expressPino({ logger })
-const PORT = process.env.PORT || 8089
+const PORT = 8089
 const app = express()
 
+app.use(express.json())
+app.use(express.urlencoded())
 app.use(cors())
 // app.use(expressLogger)
 

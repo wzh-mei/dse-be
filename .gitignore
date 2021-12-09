@@ -5,3 +5,5 @@ extra
 dist
 
 .vscode
+
+.env
