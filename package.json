@@ -6,6 +6,7 @@
   "scripts": {
     "test": "cd src && ts-node ./test.ts",
     "server": "ts-node ./src/srv.ts",
+    "srv": "ts-node ./src/srv.ts",
     "start": "ts-node ./src/srv.ts",
     "dev": "nodemon ./src/srv.ts"
   },

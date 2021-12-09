@@ -1,4 +1,4 @@
-import { Queue, Worker, QueueEvents, RedisConnection } from 'bullmq'
+import { Queue, Worker, QueueEvents } from 'bullmq'
 import { spawn } from 'child_process'
 import { createBullBoard } from 'bull-board'
 import { BullMQAdapter } from 'bull-board/bullMQAdapter'
@@ -10,7 +10,6 @@ dotenv.config({ path: '../.env', debug: true })
 const { router: bullBoardRouter, addQueue, removeQueue } = createBullBoard([])
 const host = process.env.REDIS_HOST
 const port = Number(process.env.REDIS_PORT)
-console.log(host, port)
 const connection = new Redis(6379, 'tracing100.sh.intel.com', {
   maxRetriesPerRequest: null,
   enableReadyCheck: false

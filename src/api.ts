@@ -6,6 +6,7 @@ import {
   DPRange,
   DPSetList,
   generateDPCSVFiles,
+  generateDPCSVFilesInSubDir,
   parseDPCSVFile
 } from './dphelper'
 import { generateSimulationsWithDpSetList } from './jobhelper'
@@ -72,24 +73,31 @@ router.post('/uploadConfigFile', (req: Request, res: Response) => {
 })
 
 router.post('/createJobs', (req: Request, res: Response) => {
-  const simParams = req.body.simParams
-  const templateDPpath = req.params.templateDPpath
+  const simParams = req.body
+  console.log(simParams)
+  const templateDPpath = simParams.dpcsv_template_path
   const dpset = new DPSetList([], [])
-  for (const i in simParams) {
-    const param = simParams[i]
-    const dp: DPRange = {
-      key: param.name,
-      value: param.values
+  for (const k in simParams) {
+    const valueRange = simParams[k]
+    if (k !== 'dpcsv_template_path') {
+      const dp: DPRange = {
+        key: k,
+        value: valueRange
+      }
+      dpset.desProduct(dp)
     }
-    dpset.desProduct(dp)
   }
-  const genDPs = generateDPCSVFiles(
+  console.log(dpset)
+  const subfolder = new Date().toISOString().replace(/:/g, '.')
+
+  const genDPs = generateDPCSVFilesInSubDir(
     '../extra/dps/gen',
+    subfolder,
     templateDPpath,
     'cofs_dp_gen',
     dpset
   )
-  const subfolder = new Date().toISOString().replace(/:/g, '.')
+  console.log(genDPs)
   genDPs.then(csvs => {
     generateSimulationsWithDpSetList(
       'maywzh',
@@ -101,15 +109,15 @@ router.post('/createJobs', (req: Request, res: Response) => {
       '27000@10.239.44.116'
     )
   })
-  const ans = aggregateData(
+  /*  const ans = aggregateData(
     '../extra/run/fff',
     ['0', '2', '4'],
     'sim_param.json',
     'received_packet_statistic.csv',
     'layer IV port 0',
     'Total BW'
-  )
-  return apiResponse(res)(ans)
+  ) */
+  return apiResponse(res)('success')
 })
 
 export { router as ApiRouter }

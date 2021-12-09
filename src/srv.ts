@@ -13,6 +13,8 @@ dotenv.config({ path: '../.env', debug: true })
 const PORT = 8089
 const app = express()
 
+app.use(express.json())
+app.use(express.urlencoded())
 app.use(cors())
 // app.use(expressLogger)
 
