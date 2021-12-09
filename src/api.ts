@@ -52,7 +52,7 @@ router.post('/uploadDPCSV', (req: Request, res: Response) => {
 
 router.post('/uploadConfigFile', (req: Request, res: Response) => {
   // const configtype = req.body.configtype
-  const upload = multer({ dest: 'extra/gconfig/upload' }).single('file')
+  const upload = multer({ dest: 'extra/configs/upload' }).single('file')
   upload(req, res, err => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
