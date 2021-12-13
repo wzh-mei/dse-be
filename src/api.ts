@@ -1,16 +1,23 @@
 import * as express from 'express'
 import * as multer from 'multer'
 import * as fs from 'fs'
+import {
+  dpcsvUploadDir,
+  dpcsvGenerateDir,
+  dpcsvGenerateTemplateNamePrefix,
+  workQueueName,
+  simulationRunDir,
+  simulationBinDir
+} from '../config/config'
 import { Request, Response } from 'express'
 import {
   DPRange,
   DPSetList,
-  generateDPCSVFiles,
   generateDPCSVFilesInSubDir,
   parseDPCSVFile
 } from './dphelper'
 import { generateSimulationsWithDpSetList } from './jobhelper'
-import { aggregateData } from './datahelper'
+// import { aggregateData } from './datahelper'
 
 const router = express.Router()
 
@@ -31,7 +38,7 @@ const apiError = (res: Response, status = 500) => (
 }
 
 router.post('/uploadDPCSV', (req: Request, res: Response) => {
-  const upload = multer({ dest: 'extra/dps/upload' }).single('file')
+  const upload = multer({ dest: dpcsvUploadDir }).single('file')
   upload(req, res, err => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
@@ -75,11 +82,11 @@ router.post('/uploadConfigFile', (req: Request, res: Response) => {
 router.post('/createJobs', (req: Request, res: Response) => {
   const simParams = req.body
   console.log(simParams)
-  const templateDPpath = simParams.dpcsv_template_path
+  const templateDPpath = simParams.DPCSV_NAME
   const dpset = new DPSetList([], [])
   for (const k in simParams) {
     const valueRange = simParams[k]
-    if (k !== 'dpcsv_template_path') {
+    if (k !== 'DPCSV_NAME') {
       const dp: DPRange = {
         key: k,
         value: valueRange
@@ -91,19 +98,19 @@ router.post('/createJobs', (req: Request, res: Response) => {
   const subfolder = new Date().toISOString().replace(/:/g, '.')
 
   const genDPs = generateDPCSVFilesInSubDir(
-    '../extra/dps/gen',
+    dpcsvGenerateDir,
     subfolder,
     templateDPpath,
-    'cofs_dp_gen',
+    dpcsvGenerateTemplateNamePrefix,
     dpset
   )
   console.log(genDPs)
   genDPs.then(csvs => {
     generateSimulationsWithDpSetList(
-      'maywzh',
-      '../extra/run',
+      workQueueName,
+      simulationRunDir,
       subfolder,
-      '../extra/bin/sample_compute_die_8x8_top.exe',
+      simulationBinDir,
       csvs,
       '5us',
       '27000@10.239.44.116'

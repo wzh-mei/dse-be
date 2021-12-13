@@ -230,8 +230,9 @@ export async function generateDPCSVFilesInSubDir (
   const templateRecords = parse(templateFileContents, {
     columns: true
   })
+  console.log(templateRecords)
   const workDirPath = path.join(workspaceDirPath, subDirPath)
-  if (fs.existsSync(workspaceDirPath)) {
+  if (fs.existsSync(workDirPath)) {
     fs.rmdirSync(workDirPath, { recursive: true })
     fs.mkdirSync(workDirPath, { recursive: true })
   } else {
@@ -250,7 +251,7 @@ export async function generateDPCSVFilesInSubDir (
       }
     }
     const csv = new ObjectsToCsv(templateRecords)
-    const genFilePath = `${workspaceDirPath}/${genTemplateName}${i}.${fileExtension}`
+    const genFilePath = `${workDirPath}/${genTemplateName}${i}.${fileExtension}`
     res.push({ param: dpSet, file: path.resolve(genFilePath), dpName: '' })
     await csv.toDisk(genFilePath)
   })
