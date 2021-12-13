@@ -2,15 +2,16 @@ import * as ini from 'ini'
 import * as path from 'path'
 import * as fs from 'fs'
 
-const readIni = (path: string) => {
-  if (!fs.existsSync(path)) {
+const readIni = (inipath: string) => {
+  if (!fs.existsSync(inipath)) {
     return null
   }
-  const Info = ini.parse(fs.readFileSync(path, 'utf-8'))
+  const Info = ini.parse(fs.readFileSync(inipath, 'utf-8'))
   return Info
 }
-const configFolder = '../config'
-const iniConf = readIni(path.join(configFolder, 'config.ini'))
+const iniConf = readIni(
+  path.resolve('/home/wmei/Workspace/dse-be/config/config.ini')
+)
 
 const dpcsvUploadDir = iniConf?.common.dpcsvUploadDir
   ? iniConf.common.dpcsvUploadDir
@@ -24,6 +25,10 @@ const dpcsvGenerateTemplateNamePrefix = iniConf?.common
   .dpcsvGenerateTemplateNamePrefix
   ? iniConf.common.dpcsvGenerateTemplateNamePrefix
   : 'cofs_dp_gen'
+
+const paramfileUploadDir = iniConf?.common.paramfileUploadDir
+  ? iniConf.common.paramfileUploadDir
+  : 'C:/Service/dse-be/upload/paramfile/'
 
 const workQueueName = iniConf?.common.workQueueName
   ? iniConf.common.workQueueName
@@ -41,6 +46,7 @@ export {
   dpcsvUploadDir,
   dpcsvGenerateDir,
   dpcsvGenerateTemplateNamePrefix,
+  paramfileUploadDir,
   workQueueName,
   simulationRunDir,
   simulationBinDir

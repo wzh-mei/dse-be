@@ -238,7 +238,7 @@ export async function generateDPCSVFilesInSubDir (
   } else {
     fs.mkdirSync(workDirPath, { recursive: true })
   }
-  dpSets.data.forEach(async (dpSet, i) => {
+  dpSets.data.forEach(async (dpSet, idx) => {
     for (let i = 0; i < templateRecords.length; i++) {
       const templateRecord = templateRecords[i]
       const dpn = templateRecord.design_parameter_name
@@ -251,7 +251,13 @@ export async function generateDPCSVFilesInSubDir (
       }
     }
     const csv = new ObjectsToCsv(templateRecords)
-    const genFilePath = `${workDirPath}/${genTemplateName}${i}.${fileExtension}`
+    const genFilePath = `${workDirPath}/${idx}/${genTemplateName}.${fileExtension}`
+    if (fs.existsSync(`${workDirPath}/${idx}`)) {
+      fs.rmdirSync(`${workDirPath}/${idx}`, { recursive: true })
+      fs.mkdirSync(`${workDirPath}/${idx}`, { recursive: true })
+    } else {
+      fs.mkdirSync(`${workDirPath}/${idx}`, { recursive: true })
+    }
     res.push({ param: dpSet, file: path.resolve(genFilePath), dpName: '' })
     await csv.toDisk(genFilePath)
   })

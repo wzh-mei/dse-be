@@ -1,14 +1,16 @@
 import * as express from 'express'
 import * as multer from 'multer'
 import * as fs from 'fs'
+import * as path from 'path'
 import {
   dpcsvUploadDir,
   dpcsvGenerateDir,
   dpcsvGenerateTemplateNamePrefix,
+  paramfileUploadDir,
   workQueueName,
   simulationRunDir,
   simulationBinDir
-} from '../config/config'
+} from './config'
 import { Request, Response } from 'express'
 import {
   DPRange,
@@ -52,7 +54,6 @@ router.post('/uploadDPCSV', (req: Request, res: Response) => {
     const params = parseDPCSVFile(filePath)
     return apiResponse(res)({
       filename: `${fileInfo.filename}.csv`,
-      filepath: `${fileInfo.path.replace(/\\/g, '/')}.csv`,
       params: params
     })
   })
@@ -60,7 +61,7 @@ router.post('/uploadDPCSV', (req: Request, res: Response) => {
 
 router.post('/uploadConfigFile', (req: Request, res: Response) => {
   // const configtype = req.body.configtype
-  const upload = multer({ dest: 'extra/configs/upload' }).single('file')
+  const upload = multer({ dest: paramfileUploadDir }).single('file')
   upload(req, res, err => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
@@ -81,8 +82,10 @@ router.post('/uploadConfigFile', (req: Request, res: Response) => {
 
 router.post('/createJobs', (req: Request, res: Response) => {
   const simParams = req.body
-  console.log(simParams)
-  const templateDPpath = simParams.DPCSV_NAME
+  const templateDPpath = path.join(dpcsvUploadDir, simParams.DPCSV_NAME)
+  if (!fs.existsSync(templateDPpath)) {
+    return apiError(res)('cannot find uploaded file')
+  }
   const dpset = new DPSetList([], [])
   for (const k in simParams) {
     const valueRange = simParams[k]
@@ -104,7 +107,6 @@ router.post('/createJobs', (req: Request, res: Response) => {
     dpcsvGenerateTemplateNamePrefix,
     dpset
   )
-  console.log(genDPs)
   genDPs.then(csvs => {
     generateSimulationsWithDpSetList(
       workQueueName,
