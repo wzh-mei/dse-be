@@ -1,0 +1,11 @@
+{
+	"socket_name": "sample_socket",
+	"die" : 
+	[
+		{
+			"name" : "compute_die",
+			"die_type" : "sample_compute_die.json",
+			"die_config_dir" : "compute_die_config"
+		}
+	]
+}

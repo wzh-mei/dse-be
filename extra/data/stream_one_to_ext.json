@@ -1,0 +1,34 @@
+{
+	"name" : "Streams one to one",
+	"streams" : 
+	[
+		{
+			"src_list" : 
+			[
+				"D0_0_0_A0"
+			],
+			"layer" : 0,
+			"start_delay" : 0,
+			"batch_size" : 10,
+			"ops" : 
+			[
+				{
+					"op_type" : "DELAY",
+					"delay" : 2
+				},
+				{
+					"op_type" : "SEND_EXT",
+					"policy" : "RR",
+					"delay" : 0,
+					"tag" : "PKT",
+					"bnc_h" : false,
+					"bnc_v" : false,
+					"dst_list" : 
+					[
+						"0x1000A0A0"
+					]
+				}
+			]
+		}
+	]
+}

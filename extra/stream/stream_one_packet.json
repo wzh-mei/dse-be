@@ -1,0 +1,35 @@
+{
+	"name" : "test one packet",
+	"streams" : 
+	[
+		{
+			"src_list" : 
+			[
+				"D0_0_2_A0"
+			],
+			"layer" : 0,
+			"start_delay" : 0,
+			"batch_size" : 1,
+			"ops" : 
+			[
+				{
+					"op_type" : "DELAY",
+					"delay" : 0
+				},
+				{
+					"op_type" : "SEND",
+					"policy" : "RR",
+					"inject_rate" : 0.12,
+					"tag" : "ad_0",
+					"bnc_h" : false,
+					"bnc_v" : false,
+					"flit_number" : 1,
+					"dst_list" : 
+					[
+						"D0_0_1_A1"
+					]
+				}
+			]
+		}
+	]
+}

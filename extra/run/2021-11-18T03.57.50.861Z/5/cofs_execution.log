@@ -1,0 +1,27 @@
+[INFO]  ================================================================================
+[INFO]          Intel(R) CoFluent(TM) Studio - Intel Corporation
+[INFO]      C++ Modeling Library for SystemC/TLM2 (SCL) version 8.1.0-r1 (release)
+[INFO]  --------------------------------------------------------------------------------
+[INFO]                      Thu Nov 18 11:57:51 2021
+[INFO]  ================================================================================
+[INFO]  
+[INFO]  0 ns:{pre-elaboration}> Simulation context: simulator = <C:\Users\wmei\Workspace\dphelper\extra\bin\sample_compute_die_8x8_top.exe>
+[INFO]  0 ns:{pre-elaboration}> Simulation context: default path = <C:\Users\wmei\Workspace\dphelper\extra\run\2021-11-18T03.57.50.861Z\5>
+[INFO]  0 ns:{pre-elaboration}> License check OK
+[INFO]  0 ns:{pre-elaboration}> parsing design parameter's values input file <C:\Users\wmei\Workspace\dphelper\extra\dps\gen\cofs_dp_gen5.csv>
+[INFO]  0 ns:{pre-elaboration}> stream file C:\Users\wmei\Workspace\dphelper\extra\stream\gen-streams\stream2.json loaded as stream ops.
+[INFO]  0 ns:{post-elaboration}> Monitoring manager:  monitoring configuration skipped, default input file not found <C:\Users\wmei\Workspace\dphelper\extra\run\2021-11-18T03.57.50.861Z\5\cofs_mon_probes.csv>
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_0_2/Node/TBIP/tbip_agent0/producer[0]/init> D0_0_2_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_0_5/Node/TBIP/tbip_agent0/producer[0]/init> D0_0_5_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_1_3/Node/TBIP/tbip_agent0/producer[0]/init> D0_1_3_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_1_6/Node/TBIP/tbip_agent0/producer[0]/init> D0_1_6_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_2_3/Node/TBIP/tbip_agent0/producer[0]/init> D0_2_3_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_2_7/Node/TBIP/tbip_agent0/producer[0]/init> D0_2_7_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_3_3/Node/TBIP/tbip_agent0/producer[0]/init> D0_3_3_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_3_7/Node/TBIP/tbip_agent0/producer[0]/init> D0_3_7_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_4_3/Node/TBIP/tbip_agent0/producer[0]/init> D0_4_3_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_4_7/Node/TBIP/tbip_agent0/producer[0]/init> D0_4_7_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_5_3/Node/TBIP/tbip_agent0/producer[0]/init> D0_5_3_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_5_7/Node/TBIP/tbip_agent0/producer[0]/init> D0_5_7_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_7_0/Node/TBIP/tbip_agent0/producer[0]/init> D0_7_0_A0[0] init done. 1 streams
+[INFO]  0 ns:/sample_compute_die_8x8_top/compute_die/node_7_4/Node/TBIP/tbip_agent0/producer[0]/init> D0_7_4_A0[0] init done. 1 streams

@@ -1,0 +1,2 @@
+delay,loop,packet_id,flit_number,source,target,agent,layer,bouncing_v,bouncing_h,tgr_credit
+0,2000,packet0,1,0_0,5_5,0,0,0,1,1

@@ -1,0 +1,86 @@
+{
+    "tgr_credit_layer_idx": 4,
+    "dst_credit_layer_idx": 4,
+    "layers": [
+        {
+            "h_ring": {
+                "ads_enable": true,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "v_ring": {
+                "ads_enable": true,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "name": "AD",
+            "is_double_pump": false
+        },
+        {
+            "h_ring": {
+                "ads_enable": false,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "v_ring": {
+                "ads_enable": false,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "name": "BL",
+            "is_double_pump": false
+        },
+        {
+            "h_ring": {
+                "ads_enable": false,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "v_ring": {
+                "ads_enable": false,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "name": "AK",
+            "is_double_pump": false
+        },
+        {
+            "h_ring": {
+                "ads_enable": false,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "v_ring": {
+                "ads_enable": false,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "name": "IV",
+            "is_double_pump": true
+        },
+        {
+            "h_ring": {
+                "ads_enable": false,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "v_ring": {
+                "ads_enable": false,
+                "max_reservation": -1,
+                "anti_starvation_thres": 64,
+                "ring_stress_thres": 0.5
+            },
+            "name": "AKC",
+            "is_double_pump": false
+        }
+    ]
+}

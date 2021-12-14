@@ -1,0 +1,64 @@
+{
+	"name" : "Streams test anti-starvation",
+	"streams" : 
+	[
+		{
+			"src_list" : 
+			[
+				"D0_0_0_A0"
+			],
+			"layer" : 3,
+			"start_delay" : 0,
+			"batch_size" : -1,
+			"ops" : 
+			[
+				{
+					"op_type" : "DELAY",
+					"delay" : 0
+				},
+				{
+					"op_type" : "SEND",
+					"policy" : "RR",
+					"inject_rate" : 1,
+					"tag" : "PKT",
+					"bnc_h" : true,
+					"bnc_v" : true,
+					"flit_number" : 1,
+					"dst_list" : 
+					[
+						"D0_2_0_A0"
+					]
+				}
+			]
+		},
+		{
+			"src_list" : 
+			[
+				"D0_1_1_A0"
+			],
+			"layer" : 3,
+			"start_delay" : 0,
+			"batch_size" : -1,
+			"ops" : 
+			[
+				{
+					"op_type" : "DELAY",
+					"delay" : 0
+				},
+				{
+					"op_type" : "SEND",
+					"policy" : "RR",
+					"inject_rate" : 1,
+					"tag" : "PKT",
+					"bnc_h" : true,
+					"bnc_v" : true,
+					"flit_number" : 1,
+					"dst_list" : 
+					[
+						"D0_2_2_A0"
+					]
+				}
+			]
+		}
+	]
+}

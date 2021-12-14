@@ -1,0 +1,12 @@
+[INFO]  ================================================================================
+[INFO]          Intel(R) CoFluent(TM) Studio - Intel Corporation
+[INFO]      C++ Modeling Library for SystemC/TLM2 (SCL) version 8.1.0-r1 (release)
+[INFO]  --------------------------------------------------------------------------------
+[INFO]                      Thu Nov 18 11:57:52 2021
+[INFO]  ================================================================================
+[INFO]  
+[INFO]  0 ns:{pre-elaboration}> Simulation context: simulator = <C:\Users\wmei\Workspace\dphelper\extra\bin\sample_compute_die_8x8_top.exe>
+[INFO]  0 ns:{pre-elaboration}> Simulation context: default path = <C:\Users\wmei\Workspace\dphelper\extra\run\2021-11-18T03.57.50.861Z\10>
+[INFO]  0 ns:{pre-elaboration}> License check OK
+[INFO]  0 ns:{pre-elaboration}> parsing design parameter's values input file <C:\Users\wmei\Workspace\dphelper\extra\dps\gen\cofs_dp_gen10.csv>
+[INFO]  0 ns:{pre-elaboration}> stream file C:\Users\wmei\Workspace\dphelper\extra\stream\gen-streams\stream5.json loaded as stream ops.

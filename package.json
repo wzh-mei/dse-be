@@ -54,7 +54,8 @@
     "ignore": [
       "extra/*",
       "upload/*",
-      "gen/*"
+      "gen/*",
+      "logs/"
     ]
   }
 }

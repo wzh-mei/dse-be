@@ -1,7 +1,5 @@
 node_modules
 
-extra
-
 dist
 
 .vscode
@@ -11,3 +9,5 @@ dist
 upload
 
 gen
+
+logs

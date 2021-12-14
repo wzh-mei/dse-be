@@ -23,6 +23,7 @@ import {
   parseDPCSVFile
 } from './dphelper'
 import { generateSimulationsWithDpSetList } from './jobhelper'
+import Logger from './lib/logger'
 
 // import { aggregateData } from './datahelper'
 
@@ -107,76 +108,81 @@ router.post('/createJobs', (req: Request, res: Response) => {
   const templateDPpath = path.join(dpcsvUploadDir, simParams.DPCSV_NAME)
   const subfolder = new Date().toISOString().replace(/:/g, '.')
   const dpset = new DPSetList([], [])
-
+  const exeName = 'App.exe'
+  const exePath = path.resolve(simulationBinDir, exeName)
+  if (!fs.existsSync(exePath)) {
+    return apiError(res)('cannot find uploaded executable program')
+  }
   if (!fs.existsSync(templateDPpath)) {
     return apiError(res)('cannot find uploaded file')
   }
-
-  for (const param in simParams) {
-    const valueRange: Array<DPType> = simParams[param]
-    if (param !== 'DPCSV_NAME') {
-      if (typeof simParams[param] === 'object') {
-        if (simParams[param].FILE_NAME !== undefined) {
-          const paramFilePath = path.resolve(
-            paramfileUploadDir,
-            simParams[param].FILE_NAME
-          )
-          const paramSetList = new DPSetList([], [])
-          for (const fileParam in simParams[param]) {
-            if (fileParam !== 'FILE_NAME') {
-              const paramFileParam: DPRange = {
-                key: fileParam,
-                value: simParams[param][fileParam]
+  try {
+    for (const param in simParams) {
+      const valueRange: Array<DPType> = simParams[param]
+      if (param !== 'DPCSV_NAME') {
+        if (typeof simParams[param] === 'object') {
+          if (simParams[param].FILE_NAME !== undefined) {
+            const paramFilePath = path.resolve(
+              paramfileUploadDir,
+              simParams[param].FILE_NAME
+            )
+            const paramSetList = new DPSetList([], [])
+            for (const fileParam in simParams[param]) {
+              if (fileParam !== 'FILE_NAME') {
+                const paramFileParam: DPRange = {
+                  key: fileParam,
+                  value: simParams[param][fileParam]
+                }
+                paramSetList.desProduct(paramFileParam)
               }
-              paramSetList.desProduct(paramFileParam)
             }
+            const genedParamFiles = generateDPInputFilesInSubDir(
+              paramfileGenerateDir,
+              subfolder,
+              paramFilePath,
+              paramfileGenerateTemplateNamePrefix,
+              param,
+              paramSetList
+            )
+            const dp: DPRange = {
+              key: param,
+              value: genedParamFiles
+            }
+            dpset.desProduct(dp)
           }
-          const genedParamFiles = generateDPInputFilesInSubDir(
-            paramfileGenerateDir,
-            subfolder,
-            paramFilePath,
-            paramfileGenerateTemplateNamePrefix,
-            param,
-            paramSetList
-          )
+        } else {
           const dp: DPRange = {
             key: param,
-            value: genedParamFiles
+            value: valueRange
           }
           dpset.desProduct(dp)
         }
-      } else {
-        const dp: DPRange = {
-          key: param,
-          value: valueRange
-        }
-        dpset.desProduct(dp)
       }
     }
-  }
-
-  const genDPs = generateDPCSVFilesInSubDir(
-    dpcsvGenerateDir,
-    subfolder,
-    templateDPpath,
-    dpcsvGenerateTemplateNamePrefix,
-    dpset
-  )
-
-  const exeName = 'App.exe'
-  const exePath = path.resolve(simulationBinDir, exeName)
-
-  genDPs.then(csvs => {
-    generateSimulationsWithDpSetList(
-      workQueueName,
-      simulationRunDir,
+    Logger.info(dpset)
+    console.log(dpset)
+    const genDPs = generateDPCSVFilesInSubDir(
+      dpcsvGenerateDir,
       subfolder,
-      exePath,
-      csvs,
-      { 'cf-sim-duration': '5us', 'cf-lic-location': '27000@10.239.44.116' }
+      templateDPpath,
+      dpcsvGenerateTemplateNamePrefix,
+      dpset
     )
-  })
-  return apiResponse(res)('success')
+
+    genDPs.then(csvs => {
+      generateSimulationsWithDpSetList(
+        workQueueName,
+        simulationRunDir,
+        subfolder,
+        exePath,
+        csvs,
+        { 'cf-sim-duration': '5us', 'cf-lic-location': '27000@10.239.44.116' }
+      )
+    })
+    return apiResponse(res)('success')
+  } catch (err) {
+    return apiError(res)('error')
+  }
 })
 
 export { router as ApiRouter }

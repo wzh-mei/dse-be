@@ -1,0 +1,45 @@
+{
+    "mini_protocol": {
+    },
+    "producer": {},
+    "consumer": {
+        "consume_delay_cycles": 0
+    },
+    "agent_ingress": {
+        "AD": {
+            "igr_credited_buffer_size": [],
+            "igr_bounceable_buffer_size": [
+                8,
+                8
+            ]
+        },
+        "BL": {
+            "igr_credited_buffer_size": [],
+            "igr_bounceable_buffer_size": [
+                8,
+                8
+            ]
+        },
+        "AK": {
+            "igr_credited_buffer_size": [],
+            "igr_bounceable_buffer_size": [
+                8,
+                8
+            ]
+        },
+        "IV": {
+            "igr_credited_buffer_size": [],
+            "igr_bounceable_buffer_size": [
+                8,
+                8
+            ]
+        },
+        "AKC": {
+            "igr_credited_buffer_size": [],
+            "igr_bounceable_buffer_size": [
+                0,
+                0
+            ]
+        }
+    }
+}

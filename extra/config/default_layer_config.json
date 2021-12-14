@@ -1,0 +1,14 @@
+{
+	"h_ring": {
+		"ads_enable": false,
+		"max_reservation": -1,
+		"anti_starvation_thres": 64,
+		"ring_stress_thres": 0.5
+    },
+    "v_ring": {
+		"ads_enable": false,
+		"max_reservation": -1,
+		"anti_starvation_thres": 64,
+		"ring_stress_thres": 0.5
+	}
+}
