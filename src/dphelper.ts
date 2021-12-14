@@ -96,10 +96,8 @@ function jsonPathTranslate (jPath: string): string {
 function setJsonValue (_obj: DPSet, _key: string, _value: DPType): DPSet {
   const _nKey = jsonPathTranslate(_key)
   if (typeof _value === 'string') {
-    console.log(`_obj${jsonPathTranslate(_nKey)}='${_value}'`)
     eval(`_obj${jsonPathTranslate(_nKey)}='${_value}'`)
   } else {
-    console.log(`_obj${jsonPathTranslate(_nKey)}=${_value}`)
     eval(`_obj${jsonPathTranslate(_nKey)}=${_value}`)
   }
   return _obj

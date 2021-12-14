@@ -12,7 +12,7 @@ import {
   workQueueName,
   simulationRunDir,
   simulationBinDir
-} from './config'
+} from './lib/config'
 import { Request, Response } from 'express'
 import {
   DPType,
@@ -23,6 +23,7 @@ import {
   parseDPCSVFile
 } from './dphelper'
 import { generateSimulationsWithDpSetList } from './jobhelper'
+
 // import { aggregateData } from './datahelper'
 
 const router = express.Router()
@@ -138,7 +139,6 @@ router.post('/createJobs', (req: Request, res: Response) => {
             param,
             paramSetList
           )
-          console.log(genedParamFiles)
           const dp: DPRange = {
             key: param,
             value: genedParamFiles
@@ -154,7 +154,6 @@ router.post('/createJobs', (req: Request, res: Response) => {
       }
     }
   }
-  console.log(dpset)
 
   const genDPs = generateDPCSVFilesInSubDir(
     dpcsvGenerateDir,

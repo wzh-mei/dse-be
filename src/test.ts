@@ -26,7 +26,6 @@ const genedFiles = generateDPInputFiles(
   'DP_STREAM_FILE',
   genStreamsRes
 )
-console.log(genedFiles)
 
 const dp3: DPRange = {
   key: 'DP_STREAM_FILE',
@@ -39,7 +38,6 @@ const dp3: DPRange = {
 // }
 const dpset = new DPSetList([], [])
 dpset.desProduct(dp3)
-console.log(dpset)
 
 const genedDpCSVs = generateDPCSVFiles(
   '../extra/dps/gen',
@@ -48,24 +46,19 @@ const genedDpCSVs = generateDPCSVFiles(
   dpset
 )
 
-// // genedDpCSVs.then(data => {
-// //   console.log(data)
-// //   console.log(data.map(e => e.param))
-// // })
-
 const subfolder = new Date().toISOString().replace(/:/g, '.')
 
-genedDpCSVs.then(csvs => {
-  generateSimulationsWithDpSetList(
-    'maywzh',
-    '../extra/run',
-    subfolder,
-    '../extra/bin/sample_compute_die_8x8_top.exe',
-    csvs,
-    '5us',
-    '27000@10.239.44.116'
-  )
-})
+// genedDpCSVs.then(csvs => {
+//   generateSimulationsWithDpSetList(
+//     'maywzh',
+//     '../extra/run',
+//     subfolder,
+//     '../extra/bin/sample_compute_die_8x8_top.exe',
+//     csvs,
+//     '5us',
+//     '27000@10.239.44.116'
+//   )
+// })
 
 // const ans = aggregateData(
 //   '../extra/run/fffnsins'[('0', '2', '4')],
@@ -75,12 +68,9 @@ genedDpCSVs.then(csvs => {
 //   'Total BW'
 // )
 
-// console.log(ans)
-
 // fs.writeFileSync('../extra/out.json', JSON.stringify({ data: ans }))
 
 // genedDpCSVs.then(data => {
-//   console.log(data)
 //   generateSimulationsWithDpSetList(
 //     'maywzh',
 //     '../extra/run',
@@ -113,9 +103,7 @@ genedDpCSVs.then(csvs => {
 //   '5us',
 //   '27000@10.239.44.116'
 // )
-// data.then(str => {
-//   console.log(str)
-// })
+
 // const b: DPRange = { key: 'Y', value: ['Y1', 'Y2'] }
 // // const c: DPRange = { key: 'Z', value: [1.0, 2.0, 3.0] }
 // // const d: DPRange = { key: '["W"]["ops"]', value: [1.1, 1.2, 1.3] }
@@ -132,7 +120,6 @@ genedDpCSVs.then(csvs => {
 //   configTplFilePath,
 //   res
 // )
-// console.log(genedFiles)
 // const dp3: DPRange = { key: 'DP_STREAM_FILE', value: genedFiles }
 
 //
@@ -148,16 +135,9 @@ genedDpCSVs.then(csvs => {
 //   dpset
 // )
 
-// genedDpCSVs.then(str => {
-//   console.log(str)
-// })
-
 // const data = generateSimulation(
 //   'maywzh',
 //   '../extra/run',
 //   '../extra/bin/sample_compute_die_8x8_top.exe',
 //   '../extra/dps/cofs_dp.csv'
 // )
-// data.then(str => {
-//   console.log(str)
-// })

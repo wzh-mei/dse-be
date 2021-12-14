@@ -62,7 +62,6 @@ export async function generateSimulationJob (
   for (const paramName in params) {
     args.push(`--${paramName}=${params[paramName]}`)
   }
-  console.log(args.join(' '))
   const cmd = args[0]
   args = args.slice(1, args.length)
   const data = await cmdQueue.add(taskName, {

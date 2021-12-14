@@ -30,12 +30,10 @@ function readFileLines (filename: string): string[] {
 //     const re1 = new RegExp(domainKeyword)
 //     const re2 = new RegExp(dataKeyword)
 //     if (re1.test(line)) {
-//       console.log(line)
 //       domainTest = true
 //     }
 //     if (domainTest && !dataTest && re2.test(line)) {
 //       dataTest = true
-//       console.log(line)
 //       res = line
 //     }
 //   })

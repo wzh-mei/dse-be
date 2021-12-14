@@ -5,6 +5,8 @@ import { BullMQAdapter } from 'bull-board/bullMQAdapter'
 import * as os from 'os'
 import * as Redis from 'ioredis'
 import * as dotenv from 'dotenv'
+import Logger from './lib/logger'
+
 dotenv.config()
 
 const { router: bullBoardRouter, addQueue, removeQueue } = createBullBoard([])
@@ -47,17 +49,16 @@ class UserQueue {
         })
         await p
         job.updateProgress(100)
-        console.log(`-----${job.name}-----done-----\n`)
       },
       { concurrency: os.cpus().length, connection }
     )
 
     this.queueEvents = new QueueEvents(this.queueName, { connection })
     this.queueEvents.on('completed', jobId => {
-      console.log('-----done-----\n')
+      Logger.info(`${jobId} done`)
     })
     this.queueEvents.on('failed', (jobId, err) => {
-      console.error('-----error-----\n', err)
+      Logger.error(`${jobId} error, message: ${err}`)
     })
 
     this.add2BullBoard()
