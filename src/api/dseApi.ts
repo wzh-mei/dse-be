@@ -12,7 +12,7 @@ import {
   workQueueName,
   simulationRunDir,
   simulationBinDir
-} from './lib/config'
+} from '../lib/config'
 import { Request, Response } from 'express'
 import {
   DPType,
@@ -21,9 +21,9 @@ import {
   generateDPCSVFilesInSubDir,
   generateDPInputFilesInSubDir,
   parseDPCSVFile
-} from './dphelper'
-import { generateSimulationsWithDpSetList } from './jobhelper'
-import Logger from './lib/logger'
+} from '../lib/dphelper'
+import { generateSimulationsWithDpSetList } from '../lib/jobhelper'
+import Logger from '../lib/logger'
 
 // import { aggregateData } from './datahelper'
 
@@ -110,11 +110,14 @@ router.post('/createJobs', (req: Request, res: Response) => {
   const dpset = new DPSetList([], [])
   const exeName = 'App.exe'
   const exePath = path.resolve(simulationBinDir, exeName)
+  Logger.info(simulationBinDir)
   if (!fs.existsSync(exePath)) {
+    Logger.error('cannot find uploaded executable program')
     return apiError(res)('cannot find uploaded executable program')
   }
   if (!fs.existsSync(templateDPpath)) {
-    return apiError(res)('cannot find uploaded file')
+    Logger.error('cannot find uploaded DPCSV file')
+    return apiError(res)('cannot find uploaded DPCSV file')
   }
   try {
     for (const param in simParams) {

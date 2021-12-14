@@ -1,9 +1,10 @@
-import { getUserQueue, bullBoardRouter } from './queueworker'
-import { ApiRouter } from './api'
+import { getUserQueue, bullBoardRouter } from './lib/queueworker'
+import { ApiRouter } from './api/dseApi'
 import * as cors from 'cors'
 import * as express from 'express'
 import * as dotenv from 'dotenv'
 import Logger from './lib/logger'
+import morganMiddleware from './lib/morganLog'
 
 dotenv.config()
 
@@ -20,6 +21,7 @@ app.use(cors())
 const username = 'maywzh'
 // eslint-disable-next-line no-unused-vars
 const maywzhQueue = getUserQueue(username).queue
+app.use(morganMiddleware)
 
 app.use('/', bullBoardRouter)
 

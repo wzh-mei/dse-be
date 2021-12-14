@@ -3,11 +3,11 @@ import {
   DPSetList,
   generateDPInputFiles,
   generateDPCSVFiles
-} from './dphelper'
+} from '../lib/dphelper'
 
-import { generateSimulationsWithDpSetList } from './jobhelper'
+import { generateSimulationsWithDpSetList } from '../lib/jobhelper'
 
-import { aggregateData } from './datahelper'
+import { aggregateData } from '../lib/datahelper'
 
 const ijr = {
   key: 'streams.0.ops.1.inject_rate',

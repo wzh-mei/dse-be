@@ -1,16 +1,21 @@
 import * as ini from 'ini'
 import * as path from 'path'
 import * as fs from 'fs'
+import Logger from './logger'
 
 const readIni = (inipath: string) => {
+  Logger.info(`Load inifile from ${inipath}`)
   if (!fs.existsSync(inipath)) {
+    Logger.warn(`Not found inifile from ${inipath}`)
     return null
   }
+  Logger.info(`Loaded inifile from ${inipath}`)
+
   const Info = ini.parse(fs.readFileSync(inipath, 'utf-8'))
   return Info
 }
-const iniConf = readIni(path.resolve(__dirname, '../config/config.ini'))
-
+const iniPath = path.resolve(__dirname, '../../config/config.ini')
+const iniConf = readIni(iniPath)
 const dpcsvUploadDir = iniConf?.common.dpcsvUploadDir
   ? iniConf.common.dpcsvUploadDir
   : 'C:/Service/dse-be/upload/dpcsv/'
@@ -49,6 +54,10 @@ const simulationBinDir = iniConf?.common.simulationBinDir
   ? iniConf.common.simulationBinDir
   : 'C:/Service/dse-be/extra/bin/'
 
+const logDir = iniConf?.common.logDir
+  ? iniConf.common.logDir
+  : 'C:/Service/dse-be/logs/'
+
 export {
   dpcsvUploadDir,
   dpcsvGenerateDir,
@@ -58,5 +67,6 @@ export {
   paramfileGenerateTemplateNamePrefix,
   workQueueName,
   simulationRunDir,
-  simulationBinDir
+  simulationBinDir,
+  logDir
 }

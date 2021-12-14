@@ -5,7 +5,7 @@ import { BullMQAdapter } from 'bull-board/bullMQAdapter'
 import * as os from 'os'
 import * as Redis from 'ioredis'
 import * as dotenv from 'dotenv'
-import Logger from './lib/logger'
+import Logger from './logger'
 
 dotenv.config()
 
