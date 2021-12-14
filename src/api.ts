@@ -9,6 +9,7 @@ import {
   paramfileUploadDir,
   workQueueName,
   simulationRunDir,
+  simulationBinDir,
   simulationBinDir
 } from './config'
 import { Request, Response } from 'express'
@@ -38,6 +39,23 @@ const apiError = (res: Response, status = 500) => (
 ) => {
   return res.status(status).json({ errorMsg, error })
 }
+
+router.post('/uploadExe', (req: Request, res: Response) => {
+  const upload = multer({ dest: simulationBinDir }).single('file')
+  upload(req, res, err => {
+    if (err) {
+      return apiError(res)('An error occurred uploading files', err)
+    }
+    if (!req.file) {
+      return apiError(res)('Cannot find any file to upload')
+    }
+    const fileInfo = req.file
+    fs.renameSync(fileInfo.path, `${fileInfo.path}.exe`)
+    return apiResponse(res)({
+      filename: `${fileInfo.filename}.exe`
+    })
+  })
+})
 
 router.post('/uploadDPCSV', (req: Request, res: Response) => {
   const upload = multer({ dest: dpcsvUploadDir }).single('file')
@@ -107,12 +125,14 @@ router.post('/createJobs', (req: Request, res: Response) => {
     dpcsvGenerateTemplateNamePrefix,
     dpset
   )
+  const exeName = 'App.exe'
+  const exePath = path.resolve(simulationBinDir, exeName)
   genDPs.then(csvs => {
     generateSimulationsWithDpSetList(
       workQueueName,
       simulationRunDir,
       subfolder,
-      simulationBinDir,
+      exePath,
       csvs,
       '5us',
       '27000@10.239.44.116'

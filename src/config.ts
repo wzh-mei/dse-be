@@ -9,9 +9,7 @@ const readIni = (inipath: string) => {
   const Info = ini.parse(fs.readFileSync(inipath, 'utf-8'))
   return Info
 }
-const iniConf = readIni(
-  path.resolve('/home/wmei/Workspace/dse-be/config/config.ini')
-)
+const iniConf = readIni(path.resolve(__dirname, '../config/config.ini'))
 
 const dpcsvUploadDir = iniConf?.common.dpcsvUploadDir
   ? iniConf.common.dpcsvUploadDir
@@ -19,7 +17,7 @@ const dpcsvUploadDir = iniConf?.common.dpcsvUploadDir
 
 const dpcsvGenerateDir = iniConf?.common.dpcsvGenerateDir
   ? iniConf.common.dpcsvGenerateDir
-  : 'C:/Service/dse-be/gen/dpcsv/'
+  : 'C:/Service/dse-be/gen/run/'
 
 const dpcsvGenerateTemplateNamePrefix = iniConf?.common
   .dpcsvGenerateTemplateNamePrefix
@@ -36,11 +34,11 @@ const workQueueName = iniConf?.common.workQueueName
 
 const simulationRunDir = iniConf?.common.simulationRunDir
   ? iniConf.common.simulationRunDir
-  : 'C:/Service/dse-be/gen/simrun/'
+  : 'C:/Service/dse-be/gen/run/'
 
 const simulationBinDir = iniConf?.common.simulationBinDir
   ? iniConf.common.simulationBinDir
-  : 'C:/Service/dse-be/extra/bin/sample_compute_die_8x8_top.exe'
+  : 'C:/Service/dse-be/extra/bin/'
 
 export {
   dpcsvUploadDir,
