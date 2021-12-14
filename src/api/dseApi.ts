@@ -10,8 +10,8 @@ import {
   paramfileGenerateDir,
   paramfileGenerateTemplateNamePrefix,
   workQueueName,
-  simulationRunDir,
-  simulationBinDir
+  appUploadDir,
+  simulationRunDir
 } from '../lib/config'
 import { Request, Response } from 'express'
 import {
@@ -24,8 +24,6 @@ import {
 } from '../lib/dphelper'
 import { generateSimulationsWithDpSetList } from '../lib/jobhelper'
 import Logger from '../lib/logger'
-
-// import { aggregateData } from './datahelper'
 
 const router = express.Router()
 
@@ -46,7 +44,7 @@ const apiError = (res: Response, status = 500) => (
 }
 
 router.post('/uploadExe', (req: Request, res: Response) => {
-  const upload = multer({ dest: simulationBinDir }).single('file')
+  const upload = multer({ dest: appUploadDir }).single('file')
   upload(req, res, err => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
@@ -56,9 +54,14 @@ router.post('/uploadExe', (req: Request, res: Response) => {
     }
     const fileInfo = req.file
     fs.renameSync(fileInfo.path, `${fileInfo.path}.exe`)
-    return apiResponse(res)({
-      filename: `${fileInfo.filename}.exe`
-    })
+    try {
+      fs.chmodSync(`${fileInfo.path}.exe`, '0711')
+      return apiResponse(res)({
+        filename: `${fileInfo.filename}.exe`
+      })
+    } catch (e) {
+      return apiError(res)('Cannot change app mode')
+    }
   })
 })
 
@@ -105,12 +108,13 @@ router.post('/uploadConfigFile', (req: Request, res: Response) => {
 
 router.post('/createJobs', (req: Request, res: Response) => {
   const simParams = req.body
-  const templateDPpath = path.join(dpcsvUploadDir, simParams.DPCSV_NAME)
+  const exeName = simParams.APP_NAME
+  const dpcsvName = simParams.DPCSV_NAME
+  const exePath = path.resolve(appUploadDir, exeName)
+  const templateDPpath = path.join(dpcsvUploadDir, dpcsvName)
+
   const subfolder = new Date().toISOString().replace(/:/g, '.')
   const dpset = new DPSetList([], [])
-  const exeName = 'App.exe'
-  const exePath = path.resolve(simulationBinDir, exeName)
-  Logger.info(simulationBinDir)
   if (!fs.existsSync(exePath)) {
     Logger.error('cannot find uploaded executable program')
     return apiError(res)('cannot find uploaded executable program')
@@ -152,17 +156,16 @@ router.post('/createJobs', (req: Request, res: Response) => {
               value: genedParamFiles
             }
             dpset.desProduct(dp)
+          } else {
+            const dp: DPRange = {
+              key: param,
+              value: valueRange
+            }
+            dpset.desProduct(dp)
           }
-        } else {
-          const dp: DPRange = {
-            key: param,
-            value: valueRange
-          }
-          dpset.desProduct(dp)
         }
       }
     }
-    Logger.debug(dpset)
     const genDPs = generateDPCSVFilesInSubDir(
       dpcsvGenerateDir,
       subfolder,

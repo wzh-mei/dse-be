@@ -46,6 +46,10 @@ const workQueueName = iniConf?.common.workQueueName
   ? iniConf.common.workQueueName
   : 'DSE'
 
+const appUploadDir = iniConf?.common.appUploadDir
+  ? iniConf.common.appUploadDir
+  : 'C:/Service/dse-be/upload/bin/'
+
 const simulationRunDir = iniConf?.common.simulationRunDir
   ? iniConf.common.simulationRunDir
   : 'C:/Service/dse-be/gen/run/'
@@ -66,6 +70,7 @@ export {
   paramfileGenerateDir,
   paramfileGenerateTemplateNamePrefix,
   workQueueName,
+  appUploadDir,
   simulationRunDir,
   simulationBinDir,
   logDir

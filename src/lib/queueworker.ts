@@ -55,10 +55,10 @@ class UserQueue {
 
     this.queueEvents = new QueueEvents(this.queueName, { connection })
     this.queueEvents.on('completed', jobId => {
-      Logger.info(`${jobId} done`)
+      Logger.info(`${jobId?.jobId} done`)
     })
     this.queueEvents.on('failed', (jobId, err) => {
-      Logger.error(`${jobId} error, message: ${err}`)
+      Logger.error(`${jobId?.jobId} error, message: ${err}`)
     })
 
     this.add2BullBoard()
