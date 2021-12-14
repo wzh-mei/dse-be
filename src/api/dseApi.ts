@@ -162,8 +162,7 @@ router.post('/createJobs', (req: Request, res: Response) => {
         }
       }
     }
-    Logger.info(dpset)
-    console.log(dpset)
+    Logger.debug(dpset)
     const genDPs = generateDPCSVFilesInSubDir(
       dpcsvGenerateDir,
       subfolder,

@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import Logger from './logger'
 
 type dataStat = {
   param: any
@@ -57,12 +58,12 @@ export function getStatistic (
     const re1 = new RegExp(domainKeyword)
     const re2 = new RegExp(dataKeyword)
     if (re1.test(line)) {
-      console.log(line)
+      Logger.debug(line)
       domainTest = true
     }
     if (domainTest && !dataTest && re2.test(line)) {
       dataTest = true
-      console.log(line)
+      Logger.debug(line)
       res = line.trim()
     }
   }
