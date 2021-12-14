@@ -48,5 +48,12 @@
     "objects-to-csv": "^1.3.6",
     "pino": "^7.5.0",
     "ts-node": "^10.4.0"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "extra/*",
+      "upload/*",
+      "gen/*"
+    ]
   }
 }

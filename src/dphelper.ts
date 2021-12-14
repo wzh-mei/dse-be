@@ -10,7 +10,7 @@ export type DPFile = {
   dpName: string
 }
 
-type DPType = string | number | boolean | DPFile
+export type DPType = string | number | boolean | DPFile
 
 type treeNodeType = {
   title: string | number
@@ -18,11 +18,11 @@ type treeNodeType = {
   children: treeNodeType[]
 }
 
-type treeNodeTypesObj = {
-  [key: string]: treeNodeType
-}
+// type treeNodeTypesObj = {
+//   [key: string]: treeNodeType
+// }
 
-type treeDataType = treeNodeType[]
+// type treeDataType = treeNodeType[]
 
 export type DPSet = {
   [key: string]: DPType
@@ -96,8 +96,10 @@ function jsonPathTranslate (jPath: string): string {
 function setJsonValue (_obj: DPSet, _key: string, _value: DPType): DPSet {
   const _nKey = jsonPathTranslate(_key)
   if (typeof _value === 'string') {
+    console.log(`_obj${jsonPathTranslate(_nKey)}='${_value}'`)
     eval(`_obj${jsonPathTranslate(_nKey)}='${_value}'`)
   } else {
+    console.log(`_obj${jsonPathTranslate(_nKey)}=${_value}`)
     eval(`_obj${jsonPathTranslate(_nKey)}=${_value}`)
   }
   return _obj
@@ -158,7 +160,7 @@ export function generateDPInputFiles (
   )
 
   if (fs.existsSync(workspaceDirPath)) {
-    fs.rmdirSync(workspaceDirPath, { recursive: true })
+    fs.rmSync(workspaceDirPath, { recursive: true })
     fs.mkdirSync(workspaceDirPath, { recursive: true })
   } else {
     fs.mkdirSync(workspaceDirPath, { recursive: true })
@@ -169,6 +171,40 @@ export function generateDPInputFiles (
       outputObj = setJsonValue(outputObj, k, dpSet[k])
     }
     const genFilePath = `${workspaceDirPath}/${genTemplateName}${i}.${fileExtension}`
+    fs.writeFileSync(genFilePath, JSON.stringify(outputObj))
+    res.push({ param: dpSet, file: path.resolve(genFilePath), dpName: dpName })
+  })
+  return res
+}
+
+export function generateDPInputFilesInSubDir (
+  workspaceDirPath: string,
+  subDirPath: string,
+  templateFilePath: string,
+  genTemplateName: string,
+  dpName: string,
+  dpSets: DPSetList
+): DPFile[] {
+  const res: DPFile[] = []
+  const templateFileContents = fs.readFileSync(templateFilePath)
+  const templateFileJsonObj: DPSet = JSON.parse(templateFileContents.toString())
+  const fileExtension = templateFilePath.substring(
+    templateFilePath.lastIndexOf('.') + 1
+  )
+  const workDir = path.resolve(workspaceDirPath, subDirPath)
+
+  if (fs.existsSync(workDir)) {
+    fs.rmSync(workDir, { recursive: true })
+    fs.mkdirSync(workDir, { recursive: true })
+  } else {
+    fs.mkdirSync(workDir, { recursive: true })
+  }
+  dpSets.data.forEach((dpSet, i) => {
+    let outputObj = { ...templateFileJsonObj }
+    for (const k in dpSet) {
+      outputObj = setJsonValue(outputObj, k, dpSet[k])
+    }
+    const genFilePath = `${workDir}/${genTemplateName}${i}.${fileExtension}`
     fs.writeFileSync(genFilePath, JSON.stringify(outputObj))
     res.push({ param: dpSet, file: path.resolve(genFilePath), dpName: dpName })
   })
@@ -190,7 +226,7 @@ export async function generateDPCSVFiles (
     columns: true
   })
   if (fs.existsSync(workspaceDirPath)) {
-    fs.rmdirSync(workspaceDirPath, { recursive: true })
+    fs.rmSync(workspaceDirPath, { recursive: true })
     fs.mkdirSync(workspaceDirPath, { recursive: true })
   } else {
     fs.mkdirSync(workspaceDirPath, { recursive: true })
@@ -230,10 +266,9 @@ export async function generateDPCSVFilesInSubDir (
   const templateRecords = parse(templateFileContents, {
     columns: true
   })
-  console.log(templateRecords)
   const workDirPath = path.join(workspaceDirPath, subDirPath)
   if (fs.existsSync(workDirPath)) {
-    fs.rmdirSync(workDirPath, { recursive: true })
+    fs.rmSync(workDirPath, { recursive: true })
     fs.mkdirSync(workDirPath, { recursive: true })
   } else {
     fs.mkdirSync(workDirPath, { recursive: true })
@@ -253,7 +288,7 @@ export async function generateDPCSVFilesInSubDir (
     const csv = new ObjectsToCsv(templateRecords)
     const genFilePath = `${workDirPath}/${idx}/${genTemplateName}.${fileExtension}`
     if (fs.existsSync(`${workDirPath}/${idx}`)) {
-      fs.rmdirSync(`${workDirPath}/${idx}`, { recursive: true })
+      fs.rmSync(`${workDirPath}/${idx}`, { recursive: true })
       fs.mkdirSync(`${workDirPath}/${idx}`, { recursive: true })
     } else {
       fs.mkdirSync(`${workDirPath}/${idx}`, { recursive: true })

@@ -39,6 +39,7 @@ const dp3: DPRange = {
 // }
 const dpset = new DPSetList([], [])
 dpset.desProduct(dp3)
+console.log(dpset)
 
 const genedDpCSVs = generateDPCSVFiles(
   '../extra/dps/gen',
@@ -52,7 +53,7 @@ const genedDpCSVs = generateDPCSVFiles(
 // //   console.log(data.map(e => e.param))
 // // })
 
-const subfolder = new Date().toISOString().replace(/\:/g, '.')
+const subfolder = new Date().toISOString().replace(/:/g, '.')
 
 genedDpCSVs.then(csvs => {
   generateSimulationsWithDpSetList(

@@ -7,16 +7,19 @@ import {
   dpcsvGenerateDir,
   dpcsvGenerateTemplateNamePrefix,
   paramfileUploadDir,
+  paramfileGenerateDir,
+  paramfileGenerateTemplateNamePrefix,
   workQueueName,
   simulationRunDir,
-  simulationBinDir,
   simulationBinDir
 } from './config'
 import { Request, Response } from 'express'
 import {
+  DPType,
   DPRange,
   DPSetList,
   generateDPCSVFilesInSubDir,
+  generateDPInputFilesInSubDir,
   parseDPCSVFile
 } from './dphelper'
 import { generateSimulationsWithDpSetList } from './jobhelper'
@@ -101,22 +104,57 @@ router.post('/uploadConfigFile', (req: Request, res: Response) => {
 router.post('/createJobs', (req: Request, res: Response) => {
   const simParams = req.body
   const templateDPpath = path.join(dpcsvUploadDir, simParams.DPCSV_NAME)
+  const subfolder = new Date().toISOString().replace(/:/g, '.')
+  const dpset = new DPSetList([], [])
+
   if (!fs.existsSync(templateDPpath)) {
     return apiError(res)('cannot find uploaded file')
   }
-  const dpset = new DPSetList([], [])
-  for (const k in simParams) {
-    const valueRange = simParams[k]
-    if (k !== 'DPCSV_NAME') {
-      const dp: DPRange = {
-        key: k,
-        value: valueRange
+
+  for (const param in simParams) {
+    const valueRange: Array<DPType> = simParams[param]
+    if (param !== 'DPCSV_NAME') {
+      if (typeof simParams[param] === 'object') {
+        if (simParams[param].FILE_NAME !== undefined) {
+          const paramFilePath = path.resolve(
+            paramfileUploadDir,
+            simParams[param].FILE_NAME
+          )
+          const paramSetList = new DPSetList([], [])
+          for (const fileParam in simParams[param]) {
+            if (fileParam !== 'FILE_NAME') {
+              const paramFileParam: DPRange = {
+                key: fileParam,
+                value: simParams[param][fileParam]
+              }
+              paramSetList.desProduct(paramFileParam)
+            }
+          }
+          const genedParamFiles = generateDPInputFilesInSubDir(
+            paramfileGenerateDir,
+            subfolder,
+            paramFilePath,
+            paramfileGenerateTemplateNamePrefix,
+            param,
+            paramSetList
+          )
+          console.log(genedParamFiles)
+          const dp: DPRange = {
+            key: param,
+            value: genedParamFiles
+          }
+          dpset.desProduct(dp)
+        }
+      } else {
+        const dp: DPRange = {
+          key: param,
+          value: valueRange
+        }
+        dpset.desProduct(dp)
       }
-      dpset.desProduct(dp)
     }
   }
   console.log(dpset)
-  const subfolder = new Date().toISOString().replace(/:/g, '.')
 
   const genDPs = generateDPCSVFilesInSubDir(
     dpcsvGenerateDir,
@@ -125,8 +163,10 @@ router.post('/createJobs', (req: Request, res: Response) => {
     dpcsvGenerateTemplateNamePrefix,
     dpset
   )
+
   const exeName = 'App.exe'
   const exePath = path.resolve(simulationBinDir, exeName)
+
   genDPs.then(csvs => {
     generateSimulationsWithDpSetList(
       workQueueName,
@@ -134,18 +174,9 @@ router.post('/createJobs', (req: Request, res: Response) => {
       subfolder,
       exePath,
       csvs,
-      '5us',
-      '27000@10.239.44.116'
+      { 'cf-sim-duration': '5us', 'cf-lic-location': '27000@10.239.44.116' }
     )
   })
-  /*  const ans = aggregateData(
-    '../extra/run/fff',
-    ['0', '2', '4'],
-    'sim_param.json',
-    'received_packet_statistic.csv',
-    'layer IV port 0',
-    'Total BW'
-  ) */
   return apiResponse(res)('success')
 })
 

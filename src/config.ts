@@ -28,6 +28,15 @@ const paramfileUploadDir = iniConf?.common.paramfileUploadDir
   ? iniConf.common.paramfileUploadDir
   : 'C:/Service/dse-be/upload/paramfile/'
 
+const paramfileGenerateDir = iniConf?.common.paramfileGenerateDir
+  ? iniConf.common.paramfileGenerateDir
+  : 'C:/Service/dse-be/gen/paramfile/'
+
+const paramfileGenerateTemplateNamePrefix = iniConf?.common
+  .paramfileGenerateTemplateNamePrefix
+  ? iniConf?.common.paramfileGenerateTemplateNamePrefix
+  : 'paramfile'
+
 const workQueueName = iniConf?.common.workQueueName
   ? iniConf.common.workQueueName
   : 'DSE'
@@ -45,6 +54,8 @@ export {
   dpcsvGenerateDir,
   dpcsvGenerateTemplateNamePrefix,
   paramfileUploadDir,
+  paramfileGenerateDir,
+  paramfileGenerateTemplateNamePrefix,
   workQueueName,
   simulationRunDir,
   simulationBinDir
