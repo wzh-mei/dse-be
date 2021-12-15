@@ -4,53 +4,29 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { DPFile } from './dphelper'
 
-export async function generateSimulation (
-  queueUserName: string,
-  workspacePath: string,
-  exePath: string,
-  dpCSV: DPFile,
-  taskName: string,
-  simDuration: string,
-  license: string
-): Promise<Job<any, any, string>> {
-  const cmdQueue = getUserQueue(queueUserName).queue
-  let cwd = `${workspacePath}/${taskName}`
-  if (fs.existsSync(cwd)) {
-    fs.rmSync(cwd, { recursive: true })
-    fs.mkdirSync(cwd, { recursive: true })
-  } else {
-    fs.mkdirSync(cwd, { recursive: true })
-  }
-  fs.writeFileSync(`${cwd}/sim_param.json`, JSON.stringify(dpCSV.param))
-  cwd = path.resolve(cwd)
-  exePath = path.resolve(exePath)
-  const dpCSVPath = path.resolve(dpCSV.file)
-  let args = [
-    `${exePath}`,
-    `--cf-dp-values-file=${dpCSVPath}`,
-    `--cf-lic-location=${license}`,
-    `--cf-sim-duration=${simDuration}`
-  ]
-  const cmd = args[0]
-  args = args.slice(1, args.length)
-  const data = await cmdQueue.add(taskName, {
-    cmd,
-    args,
-    cwd
-  })
-  return data
-}
-
+/**
+ * Generate a job in a simulation
+ *
+ * @param queueUserName: username of bullmq queue
+ * @param simulationName: simulation name
+ * @param workspacePath: workspace path
+ * @param exePath: simulation exe path
+ * @param dpCSV: dpcsv file info
+ * @param jobName: job name
+ * @param params: simulation parameters
+ * @returns
+ */
 export async function generateSimulationJob (
   queueUserName: string,
+  simulationName: string,
   workspacePath: string,
   exePath: string,
   dpCSV: DPFile,
-  taskName: string,
+  jobName: string,
   params: { [key: string]: string | number | boolean }
 ): Promise<Job<any, any, string>> {
   const cmdQueue = getUserQueue(queueUserName).queue
-  let cwd = `${workspacePath}/${taskName}`
+  let cwd = `${workspacePath}/${jobName}`
   if (!fs.existsSync(cwd)) {
     fs.mkdirSync(cwd, { recursive: true })
   }
@@ -64,15 +40,27 @@ export async function generateSimulationJob (
   }
   const cmd = args[0]
   args = args.slice(1, args.length)
-  const data = await cmdQueue.add(taskName, {
+  const data = await cmdQueue.add(jobName, {
     cmd,
     args,
-    cwd
+    cwd,
+    simulationName
   })
   return data
 }
 
-export async function generateSimulationsWithDpSetList (
+/**
+ * Generate a simulation
+ *
+ * @param queueUserName
+ * @param workspacePath
+ * @param subWorkspacePath
+ * @param exePath
+ * @param dpCSVFiles
+ * @param params
+ * @returns
+ */
+export async function generateSimulation (
   queueUserName: string,
   workspacePath: string,
   subWorkspacePath: string,
@@ -81,11 +69,13 @@ export async function generateSimulationsWithDpSetList (
   params: { [key: string]: string | number | boolean }
 ): Promise<any> {
   const res = []
+  const simulationName = subWorkspacePath
   const workDir = `${workspacePath}/${subWorkspacePath}`
   for (const idx in dpCSVFiles) {
     res.push(
       await generateSimulationJob(
         queueUserName,
+        simulationName,
         workDir,
         exePath,
         dpCSVFiles[idx],

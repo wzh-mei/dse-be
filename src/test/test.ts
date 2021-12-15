@@ -5,7 +5,7 @@ import {
   generateDPCSVFiles
 } from '../lib/dphelper'
 
-import { generateSimulationsWithDpSetList } from '../lib/jobhelper'
+import { generateSimulation } from '../lib/jobhelper'
 
 import { aggregateData } from '../lib/datahelper'
 
@@ -49,7 +49,7 @@ const genedDpCSVs = generateDPCSVFiles(
 const subfolder = new Date().toISOString().replace(/:/g, '.')
 
 // genedDpCSVs.then(csvs => {
-//   generateSimulationsWithDpSetList(
+//   generateSimulation(
 //     'maywzh',
 //     '../extra/run',
 //     subfolder,
@@ -71,7 +71,7 @@ const subfolder = new Date().toISOString().replace(/:/g, '.')
 // fs.writeFileSync('../extra/out.json', JSON.stringify({ data: ans }))
 
 // genedDpCSVs.then(data => {
-//   generateSimulationsWithDpSetList(
+//   generateSimulation(
 //     'maywzh',
 //     '../extra/run',
 //     '5us',

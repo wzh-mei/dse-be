@@ -22,30 +22,27 @@ import {
   generateDPInputFilesInSubDir,
   parseDPCSVFile
 } from '../lib/dphelper'
-import { generateSimulationsWithDpSetList } from '../lib/jobhelper'
+import { generateSimulation } from '../lib/jobhelper'
 import Logger from '../lib/logger'
+import { getUserQueue } from '../lib/queueworker'
 
 const router = express.Router()
 
-const apiResponse = (res: Response, status = 200) => (
-  data: any,
-  success?: boolean,
-  errorMsg?: string,
-  error?: Error
-) => {
-  return res.status(status).json(data)
-}
+const apiResponse =
+  (res: Response, status = 200) =>
+    (data: any, success?: boolean, errorMsg?: string, error?: Error) => {
+      return res.status(status).json(data)
+    }
 
-const apiError = (res: Response, status = 500) => (
-  errorMsg: string,
-  error?: Error
-) => {
-  return res.status(status).json({ errorMsg, error })
-}
+const apiError =
+  (res: Response, status = 500) =>
+    (errorMsg: string, error?: Error) => {
+      return res.status(status).json({ errorMsg, error })
+    }
 
 router.post('/uploadExe', (req: Request, res: Response) => {
   const upload = multer({ dest: appUploadDir }).single('file')
-  upload(req, res, err => {
+  upload(req, res, (err) => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
     }
@@ -67,7 +64,7 @@ router.post('/uploadExe', (req: Request, res: Response) => {
 
 router.post('/uploadDPCSV', (req: Request, res: Response) => {
   const upload = multer({ dest: dpcsvUploadDir }).single('file')
-  upload(req, res, err => {
+  upload(req, res, (err) => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
     }
@@ -88,7 +85,7 @@ router.post('/uploadDPCSV', (req: Request, res: Response) => {
 router.post('/uploadConfigFile', (req: Request, res: Response) => {
   // const configtype = req.body.configtype
   const upload = multer({ dest: paramfileUploadDir }).single('file')
-  upload(req, res, err => {
+  upload(req, res, (err) => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
     }
@@ -174,8 +171,8 @@ router.post('/createJobs', (req: Request, res: Response) => {
       dpset
     )
 
-    genDPs.then(csvs => {
-      generateSimulationsWithDpSetList(
+    genDPs.then((csvs) => {
+      generateSimulation(
         workQueueName,
         simulationRunDir,
         subfolder,
@@ -188,6 +185,39 @@ router.post('/createJobs', (req: Request, res: Response) => {
   } catch (err) {
     return apiError(res)('error')
   }
+})
+
+router.get('/getActiveJobs', async (req, res) => {
+  const { start, end } = req.body
+  // const { username } = req.user as { [username: string]: string }
+  const cmdQueue = getUserQueue('DSE').queue
+  const activeJobs = await cmdQueue.getActive(start, end)
+  return apiResponse(res)(activeJobs)
+})
+
+router.get('/getWaitingJobs', async (req, res) => {
+  const { start, end } = req.body
+  // const { username } = req.user as { [username: string]: string }
+  const cmdQueue = getUserQueue('DSE').queue
+  const waitingJobs = await cmdQueue.getWaiting(start, end)
+  return apiResponse(res)(waitingJobs)
+})
+
+router.post('/getCompletedJobs', async (req, res) => {
+  const { start, end } = req.body
+  // const { username } = req.user as { [username: string]: string }
+  const cmdQueue = getUserQueue('DSE').queue
+  const completedJobs = await cmdQueue.getCompleted(start, end)
+  console.log(completedJobs)
+  return apiResponse(res)(completedJobs)
+})
+
+router.post('/getFailedJobs', async (req, res) => {
+  const { start, end } = req.body
+  // const { username } = req.user as { [username: string]: string }
+  const cmdQueue = getUserQueue('DSE').queue
+  const failedJobs = await cmdQueue.getFailed(start, end)
+  return apiResponse(res)(failedJobs)
 })
 
 export { router as ApiRouter }
