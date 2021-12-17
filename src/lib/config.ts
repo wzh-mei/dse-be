@@ -14,7 +14,8 @@ const readIni = (inipath: string) => {
   const Info = ini.parse(fs.readFileSync(inipath, 'utf-8'))
   return Info
 }
-const iniPath = path.resolve(__dirname, '../../config/config.ini')
+const iniPath =
+  process.env.CONFIG || path.resolve(__dirname, '../../config/config.ini')
 const iniConf = readIni(iniPath)
 const dpcsvUploadDir = iniConf?.common.dpcsvUploadDir
   ? iniConf.common.dpcsvUploadDir
