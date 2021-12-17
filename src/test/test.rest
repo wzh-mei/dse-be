@@ -1,0 +1,44 @@
+###
+POST http://localhost:8089/api/getCompletedJobs
+Content-Type: application/json
+
+{
+
+}
+
+###
+POST http://localhost:8089/api/getJobs
+Content-Type: application/json
+
+{
+    "start":1,
+    "end":20,
+    "type": "completed"
+}
+
+###
+POST http://localhost:8089/api/getSimulationJobs
+Content-Type: application/json
+
+{
+    "simulation": "2021-12-16T03.45.23.590Z",
+    "type": "completed"
+}
+
+###
+GET http://localhost:8089/api/getSimulationJobs?start=1
+Content-Type: application/json
+
+{
+    "simulation": "2021-12-16T03.45.23.590Z",
+    "type": "completed"
+}
+
+
+###
+POST http://localhost:8089/api/getFailedJobs
+Content-Type: application/json
+
+{
+   
+}

@@ -1,7 +1,0 @@
-###
-POST http://localhost:8089/api/getCompletedJobs
-Content-Type: application/json
-
-{
-
-}
