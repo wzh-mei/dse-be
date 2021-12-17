@@ -19,11 +19,12 @@ import { DPFile } from './dphelper'
 export async function generateSimulationJob (
   queueUserName: string,
   simulationName: string,
+  simulationTime: Date,
   workspacePath: string,
   exePath: string,
   dpCSV: DPFile,
   jobName: string,
-  params: { [key: string]: string | number | boolean }
+  params?: { [key: string]: string | number | boolean }
 ): Promise<Job<any, any, string>> {
   const cmdQueue = getUserQueue(queueUserName).queue
   let cwd = `${workspacePath}/${jobName}`
@@ -44,7 +45,8 @@ export async function generateSimulationJob (
     cmd,
     args,
     cwd,
-    simulationName
+    simulationName,
+    simulationTime
   })
   return data
 }
@@ -63,19 +65,21 @@ export async function generateSimulationJob (
 export async function generateSimulation (
   queueUserName: string,
   workspacePath: string,
-  subWorkspacePath: string,
+  simulationName: string,
+  simulationTime: Date,
   exePath: string,
   dpCSVFiles: DPFile[],
-  params: { [key: string]: string | number | boolean }
-): Promise<any> {
-  const res = []
-  const simulationName = subWorkspacePath
+  params?: { [key: string]: string | number | boolean }
+): Promise<{ name: string; jobs: Job<any, any, string>[] }> {
+  const genSimulationJobs = []
+  const subWorkspacePath = simulationName
   const workDir = `${workspacePath}/${subWorkspacePath}`
   for (const idx in dpCSVFiles) {
-    res.push(
+    genSimulationJobs.push(
       await generateSimulationJob(
         queueUserName,
         simulationName,
+        simulationTime,
         workDir,
         exePath,
         dpCSVFiles[idx],
@@ -84,5 +88,5 @@ export async function generateSimulation (
       )
     )
   }
-  return res
+  return { name: simulationName, jobs: genSimulationJobs }
 }
