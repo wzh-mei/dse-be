@@ -46,7 +46,7 @@ export async function generateSimulationJob (
     args,
     cwd,
     simulationName,
-    simulationTime
+    simulationTime: simulationTime.getTime()
   })
   return data
 }

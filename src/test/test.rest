@@ -3,7 +3,8 @@ POST http://localhost:8089/api/getCompletedJobs
 Content-Type: application/json
 
 {
-
+    "start":0,
+    "end":0
 }
 
 ###
@@ -11,9 +12,9 @@ POST http://localhost:8089/api/getJobs
 Content-Type: application/json
 
 {
-    "start":1,
-    "end":20,
-    "type": "completed"
+    "state": "completed",
+    "start":0,
+    "end":1
 }
 
 ###
@@ -21,7 +22,7 @@ POST http://localhost:8089/api/getSimulationJobs
 Content-Type: application/json
 
 {
-    "simulation": "2021-12-16T03.45.23.590Z",
+    "simulation": "sim1",
     "type": "completed"
 }
 
@@ -34,11 +35,21 @@ Content-Type: application/json
     "type": "completed"
 }
 
-
 ###
-POST http://localhost:8089/api/getFailedJobs
+POST http://localhost:8089/api/getSimulations
 Content-Type: application/json
 
 {
-   
+    "simulation": "2021-12-16T03.45.23.590Z",
+    "type": "completed"
+}
+
+
+###
+POST http://localhost:8089/api/getSimulations
+Content-Type: application/json
+
+{
+   "start": 0,
+   "end:": 20
 }
