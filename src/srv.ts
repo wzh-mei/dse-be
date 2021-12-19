@@ -11,16 +11,16 @@ dotenv.config()
 // const expressPino = require('express-pino-logger')
 // const logger = pino({ level: process.env.LOG_LEVEL || 'info' })
 // const expressLogger = expressPino({ logger })
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 8089
 const app = express()
 
 app.use(express.json())
 app.use(cors())
 // app.use(expressLogger)
 
-const username = 'maywzh'
+const username = process.env.workQueueName || 'DSE'
 // eslint-disable-next-line no-unused-vars
-const maywzhQueue = getUserQueue(username).queue
+const dseQueue = getUserQueue(username).queue
 app.use(morganMiddleware)
 
 app.use('/', bullBoardRouter)

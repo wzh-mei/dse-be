@@ -3,40 +3,50 @@ import * as path from 'path'
 import * as fs from 'fs'
 import Logger from './logger'
 
-const readIni = (inipath: string) => {
-  Logger.info(`Load inifile from ${inipath}`)
-  if (!fs.existsSync(inipath)) {
-    Logger.warn(`Not found inifile from ${inipath}`)
+const readIni = (iniPath: string) => {
+  Logger.info(`Load config file from ${iniPath}`)
+  if (!fs.existsSync(iniPath)) {
+    Logger.warn(`No config file found in ${iniPath}`)
     return null
   }
-  Logger.info(`Loaded inifile from ${inipath}`)
+  Logger.info(`Loaded config file from ${iniPath}`)
 
-  const Info = ini.parse(fs.readFileSync(inipath, 'utf-8'))
+  const Info = ini.parse(fs.readFileSync(iniPath, 'utf-8'))
   return Info
 }
+
 const iniPath =
   process.env.CONFIG || path.resolve(__dirname, '../../config/config.ini')
+
 const iniConf = readIni(iniPath)
 const dpcsvUploadDir = iniConf?.common.dpcsvUploadDir
   ? iniConf.common.dpcsvUploadDir
-  : 'C:/Service/dse-be/upload/dpcsv/'
+  : process.platform === 'win32'
+    ? 'C:/Service/dse-be/upload/dpcsv/'
+    : '/srv/dse-be/upload/dpcsv'
 
 const dpcsvGenerateDir = iniConf?.common.dpcsvGenerateDir
   ? iniConf.common.dpcsvGenerateDir
-  : 'C:/Service/dse-be/gen/run/'
+  : process.platform === 'win32'
+    ? 'C:/Service/dse-be/gen/dpcsv/'
+    : '/srv/dse-be/gen/dpcsv'
 
 const dpcsvGenerateTemplateNamePrefix = iniConf?.common
   .dpcsvGenerateTemplateNamePrefix
   ? iniConf.common.dpcsvGenerateTemplateNamePrefix
-  : 'cofs_dp_gen'
+  : 'cofs_dp'
 
 const paramfileUploadDir = iniConf?.common.paramfileUploadDir
   ? iniConf.common.paramfileUploadDir
-  : 'C:/Service/dse-be/upload/paramfile/'
+  : process.platform === 'win32'
+    ? 'C:/Service/dse-be/upload/paramfile/'
+    : '/srv/dse-be/upload/upload/paramfile'
 
 const paramfileGenerateDir = iniConf?.common.paramfileGenerateDir
   ? iniConf.common.paramfileGenerateDir
-  : 'C:/Service/dse-be/gen/paramfile/'
+  : process.platform === 'win32'
+    ? 'C:/Service/dse-be/gen/paramfile/'
+    : '/srv/dse-be/gen/paramfile'
 
 const paramfileGenerateTemplateNamePrefix = iniConf?.common
   .paramfileGenerateTemplateNamePrefix
@@ -49,19 +59,27 @@ const workQueueName = iniConf?.common.workQueueName
 
 const appUploadDir = iniConf?.common.appUploadDir
   ? iniConf.common.appUploadDir
-  : 'C:/Service/dse-be/upload/bin/'
+  : process.platform === 'win32'
+    ? 'C:/Service/dse-be/upload/bin/'
+    : '/srv/dse-be/upload/bin'
 
 const simulationRunDir = iniConf?.common.simulationRunDir
   ? iniConf.common.simulationRunDir
-  : 'C:/Service/dse-be/gen/run/'
+  : process.platform === 'win32'
+    ? 'C:/Service/dse-be/gen/simulation/'
+    : '/srv/dse-be/gen/simulation'
 
 const simulationBinDir = iniConf?.common.simulationBinDir
   ? iniConf.common.simulationBinDir
-  : 'C:/Service/dse-be/extra/bin/'
+  : process.platform === 'win32'
+    ? 'C:/Service/dse-be/extra/bin/'
+    : '/srv/dse-be/extra/bin'
 
 const logDir = iniConf?.common.logDir
   ? iniConf.common.logDir
-  : 'C:/Service/dse-be/logs/'
+  : process.platform === 'win32'
+    ? 'C:/Service/dse-be/logs/'
+    : '/srv/dse-be/logs'
 
 export {
   dpcsvUploadDir,
