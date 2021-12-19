@@ -13,6 +13,7 @@ const { router: bullBoardRouter, addQueue, removeQueue } = createBullBoard([])
 
 const host = process.env.REDIS_HOST
 const port = Number(process.env.REDIS_PORT)
+
 const connection = new Redis(port, host, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false
@@ -30,12 +31,12 @@ class UserQueue {
 
     this.queueWorker = new Worker(
       this.queueName,
-      async job => {
+      async (job) => {
         const { cmd, args, cwd } = job.data
         job.updateProgress(10)
         const p = new Promise((resolve, reject) => {
           const exe = spawn(cmd, args, { cwd })
-          exe.on('close', code => {
+          exe.on('close', (code) => {
             const message = `child process exited with code ${code}`
             if (code === 0) {
               resolve(code)
@@ -43,7 +44,7 @@ class UserQueue {
               reject(new Error(message))
             }
           })
-          exe.on('error', err => {
+          exe.on('error', (err) => {
             reject(err)
           })
         })
@@ -54,11 +55,11 @@ class UserQueue {
     )
 
     this.queueEvents = new QueueEvents(this.queueName, { connection })
-    this.queueEvents.on('completed', jobId => {
-      Logger.info(`${jobId?.jobId} done`)
+    this.queueEvents.on('completed', (job) => {
+      Logger.info(`${job?.jobId} done`)
     })
-    this.queueEvents.on('failed', (jobId, err) => {
-      Logger.error(`${jobId?.jobId} error, message: ${err}`)
+    this.queueEvents.on('failed', (job, err) => {
+      Logger.error(`${job?.jobId} error, message: ${err}`)
     })
 
     this.add2BullBoard()
@@ -79,6 +80,7 @@ const getUserQueue = (userName: string) => {
   const queueName = `${userName}-${process.platform}`
   if (!QueueList[queueName]) {
     QueueList[queueName] = new UserQueue(queueName)
+    Logger.info(`Created new task queue ${queueName}`)
   }
   return QueueList[queueName]
 }
@@ -88,6 +90,7 @@ const removeUserQueue = (userName: string) => {
   if (QueueList[queueName]) {
     QueueList[queueName].removeFromBullBoard()
     delete QueueList[queueName]
+    Logger.info(`Removed new task queue ${queueName}`)
   }
 }
 
