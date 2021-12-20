@@ -2,6 +2,8 @@ import * as express from 'express'
 import * as multer from 'multer'
 import * as fs from 'fs'
 import * as path from 'path'
+import { v4 as uuidv4 } from 'uuid'
+
 import {
   dpcsvUploadDir,
   dpcsvGenerateDir,
@@ -14,9 +16,8 @@ import {
   simulationRunDir
 } from '../lib/config'
 import { Request, Response } from 'express'
+import type { DPType, DPRange } from '../lib/types'
 import {
-  DPType,
-  DPRange,
   DPSetList,
   generateDPCSVFilesInSubDir,
   generateDPInputFilesInSubDir,
@@ -40,12 +41,15 @@ const allJobTypes = ['active', 'completed', 'waiting', 'failed', 'delayed']
 type JobInfo = {
   id: any
   name: string
-  simulationName: string
-  createTime: string
+  createTime: number
   state: string
+  simulationId: string
+  simulationName: string
+  simulationTime: number
 }
 
 type SimulationInfo = {
+  id: string
   name: string
   createTime: number
   active: JobInfo[]
@@ -105,9 +109,10 @@ const returnJob = (
     return {
       id: job.id,
       name: job.name,
+      simulationId: job.data.simulationId,
       simulationName: job.data.simulationName,
       simulationTime: job.data.simulationTime,
-      createTime: new Date(job.processedOn as number).toString(),
+      createTime: job.processedOn as number,
       state: getJobState(job, queuedJobs)
     }
   })
@@ -243,10 +248,11 @@ router.post('/createJobs', async (req: Request, res: Response) => {
       dpcsvGenerateTemplateNamePrefix,
       dpset
     )
-
+    const simId = uuidv4()
     const genSims = await generateSimulation(
       workQueueName,
       simulationRunDir,
+      simId,
       simName,
       simTime,
       exePath,
@@ -378,17 +384,15 @@ router.post('/getSimulations', async (req, res) => {
 //     })
 //     return Object.fromEntries(map.entries())
 //   }
-//   const allJobInfos = returnJob(allJobs, jobQueue)
-//   const simulations = groupBy(allJobInfos, (job: JobInfo) => job.simulationName)
+//   // const allJobInfos = returnJob(allJobs, jobQueue)
+//   // const simulations = groupBy(allJobInfos, (job: JobInfo) => job.simulationId)
 //   const rtn: SimulationInfo[] = []
-//   for (const simulation of simulations) {
-//     rtn.push({name: simulation, createTime: simulation})
-//   }
+
 //   return apiResponse(res)(rtn)
 // })
 
 router.post('getSimulationInfos', async (req, res) => {
-  const { start, end, state, simulationName } = req.body
+  const { start, end, state, simulationId } = req.body
 
   // const { username } = req.user as { [username: string]: string }
   const cmdQueue = getUserQueue('DSE').queue
@@ -402,7 +406,7 @@ router.post('getSimulationInfos', async (req, res) => {
   const jobInfos = returnJob(
     allJobs,
     jobQueue,
-    (job: Job) => job.data.simulationName === simulationName
+    (job: Job) => job.data.simulationId === simulationId
   )
   return apiResponse(res)(jobInfos)
 })

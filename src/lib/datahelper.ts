@@ -1,16 +1,9 @@
 import * as fs from 'fs'
 import Logger from './logger'
-
-type dataStat = {
-  param: any
-  data: any
-}
+import { DataStat } from './types'
 
 function readFileLines (filename: string): string[] {
-  return fs
-    .readFileSync(filename)
-    .toString()
-    .split('\n')
+  return fs.readFileSync(filename).toString().split('\n')
 }
 
 // function readData (
@@ -83,8 +76,8 @@ export function aggregateData (
   dataFileName: string,
   domainKeyword: string,
   dataKeyword: string
-): dataStat[] {
-  const res: dataStat[] = []
+): DataStat[] {
+  const res: DataStat[] = []
   for (const i in workDirRange) {
     const subDir = `${workSpace}/${workDirRange[i]}`
     res.push({

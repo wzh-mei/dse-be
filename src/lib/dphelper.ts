@@ -3,50 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import parse = require('csv-parse/lib/sync')
 import ObjectsToCsv = require('objects-to-csv')
-
-export type DPFile = {
-  param: { [key: string]: any }
-  file: string
-  dpName: string
-}
-
-export type DPType = string | number | boolean | DPFile
-
-type treeNodeType = {
-  title: string | number
-  value: string | number
-  children: treeNodeType[]
-}
-
-// type treeNodeTypesObj = {
-//   [key: string]: treeNodeType
-// }
-
-// type treeDataType = treeNodeType[]
-
-export type DPSet = {
-  [key: string]: DPType
-}
-
-export type DPRange = {
-  key: string
-  value: Array<DPType>
-}
-
-// export type IDPFileList {
-//   keys: Array<string>
-//   data: Array<DPFile>
-// }
-
-export type FileDPSetDict = {
-  [key: string]: DPSet
-}
-
-export interface IDPSetList {
-  keys: Array<string>
-  data: Array<DPSet>
-  desProduct: (arg0: DPRange) => IDPSetList
-}
+import { DPFile, DPRange, DPSet, DPType, IDPSetList } from './types'
 
 export class DPSetList implements IDPSetList {
   keys: Array<string>
@@ -85,7 +42,7 @@ function jsonPathTranslate (jPath: string): string {
   if (!(jPath.startsWith('[') && jPath.endsWith(']'))) {
     jPath = jPath
       .split('.')
-      .map(x => {
+      .map((x) => {
         return `["${x}"]`
       })
       .join('')

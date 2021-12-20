@@ -2,7 +2,7 @@ import { getUserQueue } from './queueworker'
 import { Job } from 'bullmq'
 import * as fs from 'fs'
 import * as path from 'path'
-import { DPFile } from './dphelper'
+import { DPFile } from './types'
 
 /**
  * Generate a job in a simulation
@@ -18,6 +18,7 @@ import { DPFile } from './dphelper'
  */
 export async function generateSimulationJob (
   queueUserName: string,
+  simulationId: string,
   simulationName: string,
   simulationTime: Date,
   workspacePath: string,
@@ -43,8 +44,9 @@ export async function generateSimulationJob (
   args = args.slice(1, args.length)
   const data = await cmdQueue.add(jobName, {
     cmd,
-    args,
     cwd,
+    args,
+    simulationId,
     simulationName,
     simulationTime: simulationTime.getTime()
   })
@@ -65,6 +67,7 @@ export async function generateSimulationJob (
 export async function generateSimulation (
   queueUserName: string,
   workspacePath: string,
+  simulationId: string,
   simulationName: string,
   simulationTime: Date,
   exePath: string,
@@ -78,6 +81,7 @@ export async function generateSimulation (
     genSimulationJobs.push(
       await generateSimulationJob(
         queueUserName,
+        simulationId,
         simulationName,
         simulationTime,
         workDir,
