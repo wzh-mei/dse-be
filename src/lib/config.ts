@@ -63,6 +63,12 @@ const appUploadDir = iniConf?.common.appUploadDir
     ? 'C:/Service/dse-be/upload/bin/'
     : '/srv/dse-be/upload/bin'
 
+const tmpUploadDir = iniConf?.common.tmpUploadDir
+  ? iniConf.common.tmpUploadDir
+  : process.platform === 'win32'
+    ? 'C:/Service/dse-be/upload/tmp/'
+    : '/srv/dse-be/upload/tmp'
+
 const simulationRunDir = iniConf?.common.simulationRunDir
   ? iniConf.common.simulationRunDir
   : process.platform === 'win32'
@@ -90,6 +96,7 @@ export {
   paramfileGenerateTemplateNamePrefix,
   workQueueName,
   appUploadDir,
+  tmpUploadDir,
   simulationRunDir,
   simulationBinDir,
   logDir

@@ -3,6 +3,7 @@ import * as multer from 'multer'
 import * as fs from 'fs'
 import * as path from 'path'
 import { v4 as uuidv4 } from 'uuid'
+import * as decompress from 'decompress'
 
 import {
   dpcsvUploadDir,
@@ -13,7 +14,9 @@ import {
   paramfileGenerateTemplateNamePrefix,
   workQueueName,
   appUploadDir,
-  simulationRunDir
+  tmpUploadDir,
+  simulationRunDir,
+  simulationBinDir
 } from '../lib/config'
 import { Request, Response } from 'express'
 import type { DPType, DPRange } from '../lib/types'
@@ -132,10 +135,46 @@ router.post('/uploadExe', (req: Request, res: Response) => {
     try {
       fs.chmodSync(`${fileInfo.path}.exe`, '0711')
       return apiResponse(res)({
-        filename: `${fileInfo.filename}.exe`
+        filename: `${fileInfo.filename}.exe`,
+        type: 'exe'
       })
     } catch (e) {
-      return apiError(res)('Cannot change app mode')
+      return apiError(res)((e as Error).message, e as Error)
+    }
+  })
+})
+
+router.post('/uploadExeZip', (req: Request, res: Response) => {
+  const upload = multer({ dest: appUploadDir }).single('file')
+  upload(req, res, async (err) => {
+    if (err) {
+      return apiError(res)('An error occurred uploading files', err)
+    }
+    if (!req.file) {
+      return apiError(res)('Cannot find any file to upload')
+    }
+    const fileInfo = req.file
+    const fileNameNoExt = fileInfo.path.split('/').pop()
+    Logger.debug(fileNameNoExt)
+    const fileRealPath = `${fileInfo.path}.zip`
+    fs.renameSync(fileInfo.path, fileRealPath)
+    try {
+      const files = await decompress(fileRealPath, tmpUploadDir)
+
+      if (files.length <= 0) throw new Error('No File in Zip')
+      const folderName = files[0].path.split('/')[0]
+      const newFolderName = `${folderName}-${new Date().getTime()}`
+      fs.cpSync(
+        `${tmpUploadDir}/${folderName}`,
+        `${simulationBinDir}/${newFolderName}`,
+        { recursive: true }
+      )
+      return apiResponse(res)({
+        foldername: newFolderName,
+        type: 'dir'
+      })
+    } catch (e: any) {
+      return apiError(res)((e as Error).message, e as Error)
     }
   })
 })
@@ -260,8 +299,8 @@ router.post('/createJobs', async (req: Request, res: Response) => {
       { 'cf-sim-duration': '5us', 'cf-lic-location': '27000@10.239.44.116' }
     )
     return apiResponse(res)(genSims)
-  } catch (err: any) {
-    return apiError(res)(err)
+  } catch (e: any) {
+    return apiError(res)((e as Error).message, e as Error)
   }
 })
 
