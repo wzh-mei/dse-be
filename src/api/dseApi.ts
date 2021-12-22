@@ -160,8 +160,19 @@ router.post('/uploadExeZip', (req: Request, res: Response) => {
     fs.renameSync(fileInfo.path, fileRealPath)
     try {
       const files = await decompress(fileRealPath, tmpUploadDir)
+      if (files.length <= 0) throw new Error('No file in zip')
 
-      if (files.length <= 0) throw new Error('No File in Zip')
+      const exeFiles = files.filter((f) => f.path.endsWith('.exe'))
+      let exeFile = null
+      if (exeFiles.length <= 0) {
+        throw new Error('No executable file found in zip')
+      } else if (exeFiles.length > 1) {
+        throw new Error(
+          'Multiple executable files found in zip, which should contain only one executable file'
+        )
+      } else {
+        exeFile = exeFiles[0]
+      }
       const folderName = files[0].path.split('/')[0]
       const newFolderName = `${folderName}-${new Date().getTime()}`
       fs.cpSync(
@@ -170,7 +181,7 @@ router.post('/uploadExeZip', (req: Request, res: Response) => {
         { recursive: true }
       )
       return apiResponse(res)({
-        foldername: newFolderName,
+        filename: exeFile.path.replace(folderName, newFolderName),
         type: 'dir'
       })
     } catch (e: any) {

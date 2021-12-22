@@ -28,13 +28,12 @@ export async function generateSimulationJob (
   params?: { [key: string]: string | number | boolean }
 ): Promise<Job<any, any, string>> {
   const cmdQueue = getUserQueue(queueUserName).queue
-  let cwd = `${workspacePath}/${jobName}`
+  const cwd = path.resolve(`${workspacePath}/${jobName}`)
+  exePath = path.resolve(exePath)
   if (!fs.existsSync(cwd)) {
     fs.mkdirSync(cwd, { recursive: true })
   }
   fs.writeFileSync(`${cwd}/sim_param.json`, JSON.stringify(dpCSV.param))
-  cwd = path.resolve(cwd)
-  exePath = path.resolve(exePath)
   const dpCSVPath = path.resolve(dpCSV.file)
   let args = [`${exePath}`, `--cf-dp-values-file=${dpCSVPath}`]
   for (const paramName in params) {
