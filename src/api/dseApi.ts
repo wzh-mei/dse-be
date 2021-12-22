@@ -15,6 +15,7 @@ import {
   workQueueName,
   appUploadDir,
   tmpUploadDir,
+  appDependencyDirname,
   simulationRunDir,
   simulationBinDir
 } from '../lib/config'
@@ -180,8 +181,10 @@ router.post('/uploadExeZip', (req: Request, res: Response) => {
         `${simulationBinDir}/${newFolderName}`,
         { recursive: true }
       )
+      const newExeFile = exeFile.path.replace(folderName, newFolderName)
+      fs.chmodSync(path.resolve(simulationBinDir, newExeFile), '0711')
       return apiResponse(res)({
-        filename: exeFile.path.replace(folderName, newFolderName),
+        filename: newExeFile,
         type: 'dir'
       })
     } catch (e: any) {
@@ -307,6 +310,7 @@ router.post('/createJobs', async (req: Request, res: Response) => {
       simTime,
       exePath,
       genDPs,
+      appDependencyDirname,
       { 'cf-sim-duration': '5us', 'cf-lic-location': '27000@10.239.44.116' }
     )
     return apiResponse(res)(genSims)

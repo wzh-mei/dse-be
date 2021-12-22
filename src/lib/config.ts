@@ -69,6 +69,10 @@ const tmpUploadDir = iniConf?.common.tmpUploadDir
     ? 'C:/Service/dse-be/upload/tmp/'
     : '/srv/dse-be/upload/tmp'
 
+const appDependencyDirname = iniConf?.common.appDependencyDirname
+  ? iniConf.common.appDependencyDirname
+  : 'dep'
+
 const simulationRunDir = iniConf?.common.simulationRunDir
   ? iniConf.common.simulationRunDir
   : process.platform === 'win32'
@@ -97,6 +101,7 @@ export {
   workQueueName,
   appUploadDir,
   tmpUploadDir,
+  appDependencyDirname,
   simulationRunDir,
   simulationBinDir,
   logDir

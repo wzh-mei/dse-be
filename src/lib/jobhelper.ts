@@ -3,6 +3,7 @@ import { Job } from 'bullmq'
 import * as fs from 'fs'
 import * as path from 'path'
 import { DPFile } from './types'
+import Logger from './logger'
 
 /**
  * Generate a job in a simulation
@@ -25,13 +26,25 @@ export async function generateSimulationJob (
   exePath: string,
   dpCSV: DPFile,
   jobName: string,
+  depName: string,
   params?: { [key: string]: string | number | boolean }
 ): Promise<Job<any, any, string>> {
   const cmdQueue = getUserQueue(queueUserName).queue
   const cwd = path.resolve(`${workspacePath}/${jobName}`)
   exePath = path.resolve(exePath)
+  const exeDir = path.dirname(exePath)
   if (!fs.existsSync(cwd)) {
     fs.mkdirSync(cwd, { recursive: true })
+  }
+
+  if (fs.existsSync(path.resolve(exeDir, depName))) {
+    Logger.debug(path.resolve(cwd, depName))
+    Logger.debug(path.resolve(exeDir, depName))
+    fs.symlinkSync(
+      path.resolve(exeDir, depName),
+      path.resolve(cwd, depName),
+      'dir'
+    )
   }
   fs.writeFileSync(`${cwd}/sim_param.json`, JSON.stringify(dpCSV.param))
   const dpCSVPath = path.resolve(dpCSV.file)
@@ -71,6 +84,7 @@ export async function generateSimulation (
   simulationTime: Date,
   exePath: string,
   dpCSVFiles: DPFile[],
+  depName: string,
   params?: { [key: string]: string | number | boolean }
 ): Promise<{ name: string; jobs: Job<any, any, string>[] }> {
   const genSimulationJobs = []
@@ -87,6 +101,7 @@ export async function generateSimulation (
         exePath,
         dpCSVFiles[idx],
         idx,
+        depName,
         params
       )
     )
