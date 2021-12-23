@@ -45,8 +45,18 @@ Content-Type: application/json
 }
 
 
+
 ###
 POST http://localhost:8089/api/getSimulations
+Content-Type: application/json
+
+{
+   "start": 0,
+   "end:": 20
+}
+
+###
+POST http://localhost:8089/api/getSimulationList
 Content-Type: application/json
 
 {
