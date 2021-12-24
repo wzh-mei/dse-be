@@ -13,3 +13,4 @@ gen
 logs
 
 dep
+yarn-error.log

@@ -1,1 +1,0 @@
-{"DP_STREAM_FILE":{"param":{"streams.0.ops.1.inject_rate":0.1,"streams.0.batch_size":1},"file":"C:\\Users\\wmei\\Workspace\\dphelper\\extra\\stream\\gen-streams\\stream1.json","dpName":"DP_STREAM_FILE"},"DP_IGR_ARB_PHASE":0.06}
