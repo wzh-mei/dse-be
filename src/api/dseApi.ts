@@ -395,7 +395,7 @@ router.post('/getJobs', async (req, res) => {
 })
 
 router.post('/getSimulationJobs', async (req, res) => {
-  const { start, end, type, simulationName } = req.body
+  const { start, end, state, simulationId } = req.body
   // const { username } = req.user as { [username: string]: string }
   const cmdQueue = getUserQueue('DSE').queue
   const active = await cmdQueue.getActive(start, end)
@@ -403,13 +403,13 @@ router.post('/getSimulationJobs', async (req, res) => {
   const failed = await cmdQueue.getFailed(start, end)
   const completed = await cmdQueue.getCompleted(start, end)
   const delayed = await cmdQueue.getDelayed(start, end)
-  const allJobs = await cmdQueue.getJobs(type, start, end)
+  const allJobs = await cmdQueue.getJobs(state, start, end)
   const jobQueue = { active, waiting, failed, completed, delayed }
   return apiResponse(res)(
     returnJob(
       allJobs,
       jobQueue,
-      (job: Job) => job.data.simulationName === simulationName
+      (job: Job) => job.data.simulationId === simulationId
     )
   )
 })
@@ -551,6 +551,10 @@ router.get('/getJobs', async (req, res) => {
   const allJobs = await cmdQueue.getJobs(_type, _start, _end)
   const jobQueue = { active, waiting, failed, completed, delayed }
   return apiResponse(res)(returnJob(allJobs, jobQueue))
+})
+
+router.get('/aggregateData', async (req, res) => {
+  return apiResponse(res)('success')
 })
 
 export { router as ApiRouter }

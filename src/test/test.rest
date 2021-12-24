@@ -22,8 +22,11 @@ POST http://localhost:8089/api/getSimulationJobs
 Content-Type: application/json
 
 {
-    "simulation": "sim1",
-    "type": "completed"
+    "end": 19,
+    "start": 0,
+    "simulationId": "52a06d23-4307-4150-bee6-d6900eacae06"
+    
+
 }
 
 ###
