@@ -1,4 +1,0 @@
-component_name,design_parameter_name,value
-/App,PrimitiveTypeParameter,1
-/App,StringParameter,"cde"
-/App,StringParameter_file,"./1.csv"

@@ -1,3 +1,0 @@
-Version 2
-delay,loop,packet_id,flit_number,source,target,layer,bouncing_v,bouncing_h
-0,10,packet0,1,1_0_A0,1_5_A0,0,1,1
