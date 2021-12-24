@@ -43,6 +43,8 @@ type JobQueue = {
 
 const allJobTypes = ['active', 'completed', 'waiting', 'failed', 'delayed']
 
+type paramInfo = { [key: string]: string }
+
 type JobInfo = {
   id: any
   name: string
@@ -92,6 +94,19 @@ const getJobState = (job: Job, jobQueue: JobQueue): string => {
           : delayed.indexOf(job.id) >= 0
             ? 'delayed'
             : 'unknown'
+}
+
+const paramToObj = (paramsStr: string) => {
+  const paramKVs = paramsStr
+    .trim()
+    .split(' ')
+    .map((x) => x.replace(/^-./, ''))
+  const obj: paramInfo = {}
+  for (const paramKV of paramKVs) {
+    const [key, value] = paramKV.split('=')
+    obj[key] = value
+  }
+  return obj
 }
 
 const router = express.Router()
@@ -245,23 +260,27 @@ router.post('/uploadConfigFile', (req: Request, res: Response) => {
 })
 
 router.post('/createJobs', async (req: Request, res: Response) => {
-  const simParams = req.body
-  const exeName = simParams.APP_NAME
-  const simTime = new Date()
-  const dpcsvName = simParams.DPCSV_NAME
-  const simName = simParams.SIM_NAME || simTime.toISOString().replace(/:/g, '.')
-  const exePath = path.resolve(appUploadDir, exeName)
-  const templateDPpath = path.join(dpcsvUploadDir, dpcsvName)
-  const dpset = new DPSetList([], [])
-  if (!fs.existsSync(exePath)) {
-    Logger.error('cannot find uploaded executable program')
-    return apiError(res)('cannot find uploaded executable program')
-  }
-  if (!fs.existsSync(templateDPpath)) {
-    Logger.error('cannot find uploaded DPCSV file')
-    return apiError(res)('cannot find uploaded DPCSV file')
-  }
   try {
+    const simParams = req.body
+    const exeName = simParams.APP_NAME
+    const simTime = new Date()
+    const cmsParams = simParams.CMD_PARAM
+    const cmsParamObj = paramToObj(cmsParams)
+    const dpcsvName = simParams.DPCSV_NAME
+    const simName =
+      simParams.SIM_NAME || simTime.toISOString().replace(/:/g, '.')
+    const exePath = path.resolve(appUploadDir, exeName)
+    const templateDPpath = path.join(dpcsvUploadDir, dpcsvName)
+    const dpset = new DPSetList([], [])
+    if (!fs.existsSync(exePath)) {
+      Logger.error('cannot find uploaded executable program')
+      return apiError(res)('cannot find uploaded executable program')
+    }
+    if (!fs.existsSync(templateDPpath)) {
+      Logger.error('cannot find uploaded DPCSV file')
+      return apiError(res)('cannot find uploaded DPCSV file')
+    }
+
     for (const param in simParams) {
       const valueRange: Array<DPType> = simParams[param]
       if (param !== 'DPCSV_NAME') {
@@ -306,7 +325,7 @@ router.post('/createJobs', async (req: Request, res: Response) => {
     }
     const genDPs = await generateDPCSVFiles(
       dpcsvGenerateDir,
-      simName,
+      `${simName}-${simTime.getTime()}`,
       templateDPpath,
       dpcsvGenerateTemplateNamePrefix,
       dpset
@@ -321,10 +340,7 @@ router.post('/createJobs', async (req: Request, res: Response) => {
       exePath,
       genDPs,
       appDependencyDirname,
-      {
-        'cf-sim-duration': '5us',
-        'cf-lic-location': '27000@10.239.44.116'
-      }
+      cmsParamObj
     )
     return apiResponse(res)(genSims)
   } catch (e: any) {
@@ -455,7 +471,8 @@ router.post('/getSimulationList', async (req, res) => {
   const simulations = groupBy(allJobInfos, (job: JobInfo) => job.simulationId)
   const rtn: SimulationStatInfo[] = []
   try {
-    simulations.forEach((simulation: JobInfo[]) => {
+    Object.keys(simulations).forEach((key: string) => {
+      const simulation = simulations[key]
       if (simulation.length > 0) {
         rtn.push({
           id: simulation[0].simulationId,
@@ -473,7 +490,7 @@ router.post('/getSimulationList', async (req, res) => {
     return apiError(res)((err as Error).message)
   }
 
-  return apiResponse(res)(simulations)
+  return apiResponse(res)(rtn)
 })
 
 router.post('getSimulationInfos', async (req, res) => {
