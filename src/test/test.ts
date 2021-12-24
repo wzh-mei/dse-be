@@ -1,52 +1,44 @@
-import {
-  DPRange,
-  DPSetList,
-  generateDPInputFiles,
-  generateDPCSVFiles
-} from '../lib/dphelper'
-
-import { generateSimulation } from '../lib/jobhelper'
-
 import { aggregateData } from '../lib/datahelper'
+import Logger from '../lib/logger'
 
-const ijr = {
-  key: 'streams.0.ops.1.inject_rate',
-  value: [0.1, 0.11, 0.12]
-}
-
-// const bs = { key: 'streams.0.batch_size', value: [-1, 1] }
-
-const genStreamsRes = new DPSetList([], [])
-
-genStreamsRes.desProduct(ijr)
-const genedFiles = generateDPInputFiles(
-  '../extra/stream/gen-streams',
-  '../extra/stream/stream_core_4c_to_all.json',
-  'stream',
-  'DP_STREAM_FILE',
-  genStreamsRes
-)
-
-const dp3: DPRange = {
-  key: 'DP_STREAM_FILE',
-  value: genedFiles
-}
-
-// const dp4: DPRange = {
-//   key: 'DP_IGR_ARB_PHASE',
-//   value: [0.06, 0.07]
+// const ijr = {
+//   key: 'streams.0.ops.1.inject_rate',
+//   value: [0.1, 0.11, 0.12]
 // }
-const dpset = new DPSetList([], [])
-dpset.desProduct(dp3)
 
-const genedDpCSVs = generateDPCSVFiles(
-  '../extra/dps/gen',
-  '../extra/dps/cofs_dp.csv',
-  'cofs_dp_gen',
-  dpset
-)
+// // const bs = { key: 'streams.0.batch_size', value: [-1, 1] }
 
-const subfolder = new Date().toISOString().replace(/:/g, '.')
+// const genStreamsRes = new DPSetList([], [])
+
+// genStreamsRes.desProduct(ijr)
+// const genedFiles = generateDPInputFiles(
+//   '../extra/stream/gen-streams',
+//   '../extra/stream/stream_core_4c_to_all.json',
+//   'stream',
+//   'DP_STREAM_FILE',
+//   genStreamsRes
+// )
+
+// const dp3: DPRange = {
+//   key: 'DP_STREAM_FILE',
+//   value: genedFiles
+// }
+
+// // const dp4: DPRange = {
+// //   key: 'DP_IGR_ARB_PHASE',
+// //   value: [0.06, 0.07]
+// // }
+// const dpset = new DPSetList([], [])
+// dpset.desProduct(dp3)
+
+// const genedDpCSVs = generateDPCSVFiles(
+//   '../extra/dps/gen',
+//   '../extra/dps/cofs_dp.csv',
+//   'cofs_dp_gen',
+//   dpset
+// )
+
+// const subfolder = new Date().toISOString().replace(/:/g, '.')
 
 // genedDpCSVs.then(csvs => {
 //   generateSimulation(
@@ -141,3 +133,14 @@ const subfolder = new Date().toISOString().replace(/:/g, '.')
 //   '../extra/bin/sample_compute_die_8x8_top.exe',
 //   '../extra/dps/cofs_dp.csv'
 // )
+
+const ans = aggregateData(
+  '/home/wmei/Workspace/dse-be/gen/run/sim0',
+  ['0', '1', '2'],
+  'sim_param.json',
+  'received_packet_statistic.csv',
+  'layer IV port 0',
+  'Total BW'
+)
+
+Logger.debug(ans)

@@ -91,6 +91,10 @@ const logDir = iniConf?.common.logDir
     ? 'C:/Service/dse-be/logs/'
     : '/srv/dse-be/logs'
 
+const jobNamePrefix = iniConf?.common.jobNamePrefix
+  ? iniConf.common.jobNamePrefix
+  : 'job'
+
 export {
   dpcsvUploadDir,
   dpcsvGenerateDir,
@@ -104,5 +108,6 @@ export {
   appDependencyDirname,
   simulationRunDir,
   simulationBinDir,
+  jobNamePrefix,
   logDir
 }

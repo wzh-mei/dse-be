@@ -23,14 +23,15 @@ import { Request, Response } from 'express'
 import type { DPType, DPRange } from '../lib/types'
 import {
   DPSetList,
-  generateDPCSVFilesInSubDir,
-  generateDPInputFilesInSubDir,
-  parseDPCSVFile
+  generateDPCSVFiles,
+  generateDPInputFiles
 } from '../lib/dphelper'
+
 import { generateSimulation } from '../lib/jobhelper'
 import Logger from '../lib/logger'
 import { getUserQueue } from '../lib/queueworker'
 import { Job } from 'bullmq'
+import { parseDPCSVFile } from '../lib/common'
 
 type JobQueue = {
   active: Job<any, any, string>[]
@@ -166,8 +167,6 @@ router.post('/uploadExeZip', (req: Request, res: Response) => {
       return apiError(res)('Cannot find any file to upload')
     }
     const fileInfo = req.file
-    const fileNameNoExt = fileInfo.path.split('/').pop()
-    Logger.debug(fileNameNoExt)
     const fileRealPath = `${fileInfo.path}.zip`
     fs.renameSync(fileInfo.path, fileRealPath)
     try {
@@ -282,7 +281,7 @@ router.post('/createJobs', async (req: Request, res: Response) => {
                 paramSetList.desProduct(paramFileParam)
               }
             }
-            const genedParamFiles = generateDPInputFilesInSubDir(
+            const genedParamFiles = generateDPInputFiles(
               paramfileGenerateDir,
               simName,
               paramFilePath,
@@ -305,7 +304,7 @@ router.post('/createJobs', async (req: Request, res: Response) => {
         }
       }
     }
-    const genDPs = await generateDPCSVFilesInSubDir(
+    const genDPs = await generateDPCSVFiles(
       dpcsvGenerateDir,
       simName,
       templateDPpath,
@@ -323,7 +322,6 @@ router.post('/createJobs', async (req: Request, res: Response) => {
       genDPs,
       appDependencyDirname,
       {
-        '': '',
         'cf-sim-duration': '5us',
         'cf-lic-location': '27000@10.239.44.116'
       }

@@ -40,3 +40,5 @@ export type DataStat = {
   param: any
   data: any
 }
+
+export type CSVRecord = { [key: string]: any }

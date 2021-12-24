@@ -2,8 +2,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import parse = require('csv-parse/lib/sync')
-import ObjectsToCsv = require('objects-to-csv')
-import { DPFile, DPRange, DPSet, DPType, IDPSetList } from './types'
+import { CSVRecord, DPFile, DPRange, DPSet, IDPSetList } from './types'
+import { setJsonValue, toCSV } from './common'
 
 export class DPSetList implements IDPSetList {
   keys: Array<string>
@@ -38,101 +38,17 @@ export class DPSetList implements IDPSetList {
   }
 }
 
-function jsonPathTranslate (jPath: string): string {
-  if (!(jPath.startsWith('[') && jPath.endsWith(']'))) {
-    jPath = jPath
-      .split('.')
-      .map((x) => {
-        return `["${x}"]`
-      })
-      .join('')
-  }
-  return jPath
-}
-
-function setJsonValue (_obj: DPSet, _key: string, _value: DPType): DPSet {
-  const _nKey = jsonPathTranslate(_key)
-  if (typeof _value === 'string') {
-    eval(`_obj${jsonPathTranslate(_nKey)}='${_value}'`)
-  } else {
-    eval(`_obj${jsonPathTranslate(_nKey)}=${_value}`)
-  }
-  return _obj
-}
-
-export function parseDPCSVFile (filePath: string): string[] {
-  const dpFileContents = fs.readFileSync(filePath)
-  const dpParams = parse(dpFileContents, {
-    columns: true
-  })
-  const ans = []
-  for (let i = 0; i < dpParams.length; i++) {
-    ans.push(dpParams[i].design_parameter_name)
-  }
-  return ans
-}
-
-// function parseJson2TreeData (json: {
-//   [key: string]: number | string | object
-// }): treeNodeType {
-//   const ans: treeNodeType = { title: 'object', value: 'object', children: [] }
-
-//   for (const k in json) {
-//     const newObj: treeNodeType = { title: k, value: k, children: [] }
-//     if (json[k] instanceof Array && Object.keys(json[k]).length > 0) {
-//       for (let i = 0; i < Object.keys(json[k]).length; i++) {
-//         const a = parseJson2TreeData(json[k][i])
-//         newObj.children.push(a)
-//       }
-//     } else if (json[k] instanceof Object && Object.keys(json[k]).length > 0) {
-//       for (const kk in json[k].keys) {
-//         newObj.children.push(parseJson2TreeData(json[k][kk]))
-//       }
-//     }
-//   }
-//   return ans
-// }
-
-export function parseJsonFile (filePath: string): string[] {
-  const jsonFileContents = fs.readFileSync(filePath)
-  const jsonFileObj = JSON.parse(jsonFileContents.toString())
-
-  return jsonFileObj
-}
-
+/**
+ * Generate param files
+ * @param workspaceDirPath
+ * @param subDirPath
+ * @param templateFilePath
+ * @param genTemplateName
+ * @param dpName
+ * @param dpSets
+ * @returns
+ */
 export function generateDPInputFiles (
-  workspaceDirPath: string,
-  templateFilePath: string,
-  genTemplateName: string,
-  dpName: string,
-  dpSets: DPSetList
-): DPFile[] {
-  const res: DPFile[] = []
-  const templateFileContents = fs.readFileSync(templateFilePath)
-  const templateFileJsonObj: DPSet = JSON.parse(templateFileContents.toString())
-  const fileExtension = templateFilePath.substring(
-    templateFilePath.lastIndexOf('.') + 1
-  )
-
-  if (fs.existsSync(workspaceDirPath)) {
-    fs.rmSync(workspaceDirPath, { recursive: true })
-    fs.mkdirSync(workspaceDirPath, { recursive: true })
-  } else {
-    fs.mkdirSync(workspaceDirPath, { recursive: true })
-  }
-  dpSets.data.forEach((dpSet, i) => {
-    let outputObj = { ...templateFileJsonObj }
-    for (const k in dpSet) {
-      outputObj = setJsonValue(outputObj, k, dpSet[k])
-    }
-    const genFilePath = `${workspaceDirPath}/${genTemplateName}${i}.${fileExtension}`
-    fs.writeFileSync(genFilePath, JSON.stringify(outputObj))
-    res.push({ param: dpSet, file: path.resolve(genFilePath), dpName: dpName })
-  })
-  return res
-}
-
-export function generateDPInputFilesInSubDir (
   workspaceDirPath: string,
   subDirPath: string,
   templateFilePath: string,
@@ -166,47 +82,16 @@ export function generateDPInputFilesInSubDir (
   return res
 }
 
+/**
+ * Generate dp csv files
+ * @param workspaceDirPath
+ * @param subDirPath
+ * @param templateFilePath
+ * @param genTemplateName
+ * @param dpSets
+ * @returns
+ */
 export async function generateDPCSVFiles (
-  workspaceDirPath: string,
-  templateFilePath: string,
-  genTemplateName: string,
-  dpSets: DPSetList
-): Promise<DPFile[]> {
-  const res: DPFile[] = []
-  const fileExtension = templateFilePath.substring(
-    templateFilePath.lastIndexOf('.') + 1
-  )
-  const templateFileContents = fs.readFileSync(templateFilePath)
-  const templateRecords = parse(templateFileContents, {
-    columns: true
-  })
-  if (fs.existsSync(workspaceDirPath)) {
-    fs.rmSync(workspaceDirPath, { recursive: true })
-    fs.mkdirSync(workspaceDirPath, { recursive: true })
-  } else {
-    fs.mkdirSync(workspaceDirPath, { recursive: true })
-  }
-  dpSets.data.forEach(async (dpSet, i) => {
-    for (let i = 0; i < templateRecords.length; i++) {
-      const templateRecord = templateRecords[i]
-      const dpn = templateRecord.design_parameter_name
-      if (dpn in dpSet) {
-        if (typeof dpSet[dpn] === 'object') {
-          templateRecord.value = (dpSet[dpn] as DPFile).file
-        } else {
-          templateRecord.value = dpSet[dpn]
-        }
-      }
-    }
-    const csv = new ObjectsToCsv(templateRecords)
-    const genFilePath = `${workspaceDirPath}/${genTemplateName}${i}.${fileExtension}`
-    res.push({ param: dpSet, file: path.resolve(genFilePath), dpName: '' })
-    await csv.toDisk(genFilePath)
-  })
-  return res
-}
-
-export async function generateDPCSVFilesInSubDir (
   workspaceDirPath: string,
   subDirPath: string,
   templateFilePath: string,
@@ -218,7 +103,7 @@ export async function generateDPCSVFilesInSubDir (
     templateFilePath.lastIndexOf('.') + 1
   )
   const templateFileContents = fs.readFileSync(templateFilePath)
-  const templateRecords = parse(templateFileContents, {
+  const templateRecords: CSVRecord[] = parse(templateFileContents, {
     columns: true
   })
   const workDirPath = path.join(workspaceDirPath, subDirPath)
@@ -228,7 +113,7 @@ export async function generateDPCSVFilesInSubDir (
   } else {
     fs.mkdirSync(workDirPath, { recursive: true })
   }
-  dpSets.data.forEach(async (dpSet, idx) => {
+  dpSets.data.forEach((dpSet, idx) => {
     for (let i = 0; i < templateRecords.length; i++) {
       const templateRecord = templateRecords[i]
       const dpn = templateRecord.design_parameter_name
@@ -240,7 +125,8 @@ export async function generateDPCSVFilesInSubDir (
         }
       }
     }
-    const csv = new ObjectsToCsv(templateRecords)
+
+    const csv = toCSV(templateRecords)
     const genFilePath = `${workDirPath}/${idx}/${genTemplateName}.${fileExtension}`
     if (fs.existsSync(`${workDirPath}/${idx}`)) {
       fs.rmSync(`${workDirPath}/${idx}`, { recursive: true })
@@ -249,7 +135,8 @@ export async function generateDPCSVFilesInSubDir (
       fs.mkdirSync(`${workDirPath}/${idx}`, { recursive: true })
     }
     res.push({ param: dpSet, file: path.resolve(genFilePath), dpName: '' })
-    await csv.toDisk(genFilePath)
+    // await csv.toDisk(genFilePath)
+    fs.writeFileSync(genFilePath, csv)
   })
   return res
 }

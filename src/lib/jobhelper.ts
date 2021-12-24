@@ -6,15 +6,17 @@ import { DPFile } from './types'
 import Logger from './logger'
 
 /**
- * Generate a job in a simulation
- *
- * @param queueUserName: username of bullmq queue
- * @param simulationName: simulation name
- * @param workspacePath: workspace path
- * @param exePath: simulation exe path
- * @param dpCSV: dpcsv file info
- * @param jobName: job name
- * @param params: simulation parameters
+ * Generate A job in one simulation
+ * @param queueUserName
+ * @param simulationId
+ * @param simulationName
+ * @param simulationTime
+ * @param workspacePath
+ * @param exePath
+ * @param dpCSV
+ * @param jobName
+ * @param depName
+ * @param params
  * @returns
  */
 export async function generateSimulationJob (
@@ -38,8 +40,6 @@ export async function generateSimulationJob (
   }
 
   if (fs.existsSync(path.resolve(exeDir, depName))) {
-    Logger.debug(path.resolve(cwd, depName))
-    Logger.debug(path.resolve(exeDir, depName))
     fs.symlinkSync(
       path.resolve(exeDir, depName),
       path.resolve(cwd, depName),
@@ -67,12 +67,14 @@ export async function generateSimulationJob (
 
 /**
  * Generate a simulation
- *
  * @param queueUserName
  * @param workspacePath
- * @param subWorkspacePath
+ * @param simulationId
+ * @param simulationName User input sim name
+ * @param simulationTime
  * @param exePath
  * @param dpCSVFiles
+ * @param depName
  * @param params
  * @returns
  */
@@ -88,7 +90,7 @@ export async function generateSimulation (
   params?: { [key: string]: string | number | boolean }
 ): Promise<{ name: string; jobs: Job<any, any, string>[] }> {
   const genSimulationJobs = []
-  const subWorkspacePath = simulationName
+  const subWorkspacePath = `${simulationName}-${simulationTime.getTime()}`
   const workDir = `${workspacePath}/${subWorkspacePath}`
   for (const idx in dpCSVFiles) {
     genSimulationJobs.push(
