@@ -12,9 +12,17 @@ POST http://localhost:8089/api/getJobs
 Content-Type: application/json
 
 {
-    "state": "completed",
+    "state": "completed"
+
+}
+
+###
+POST http://localhost:8089/testapi/getAllJobs
+Content-Type: application/json
+
+{
     "start":0,
-    "end":1
+    "end":20
 }
 
 ###

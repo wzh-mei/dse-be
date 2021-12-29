@@ -3,7 +3,6 @@ import { Job } from 'bullmq'
 import * as fs from 'fs'
 import * as path from 'path'
 import { DPFile } from './types'
-import Logger from './logger'
 
 /**
  * Generate A job in one simulation

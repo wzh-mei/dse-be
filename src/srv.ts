@@ -1,5 +1,6 @@
 import { getUserQueue, bullBoardRouter } from './lib/queueworker'
 import { ApiRouter } from './api/dseApi'
+import { TestApiRouter } from './api/testApi'
 import * as cors from 'cors'
 import * as express from 'express'
 import * as dotenv from 'dotenv'
@@ -18,6 +19,8 @@ app.use(express.json())
 app.use(cors())
 // app.use(expressLogger)
 
+const isProd = process.env.Prod ? process.env.Prod : false
+
 const username = process.env.workQueueName || 'DSE'
 // eslint-disable-next-line no-unused-vars
 const dseQueue = getUserQueue(username).queue
@@ -26,6 +29,8 @@ app.use(morganMiddleware)
 app.use('/', bullBoardRouter)
 
 app.use('/api', ApiRouter)
+
+if (!isProd) app.use('/testapi', TestApiRouter)
 
 app.get('/logger', (_, res) => {
   Logger.error('This is an error log')

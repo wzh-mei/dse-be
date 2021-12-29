@@ -2,6 +2,7 @@
 import { CSVRecord, DPSet, DPType } from './types'
 import * as fs from 'fs'
 import parse = require('csv-parse/lib/sync')
+import { Response } from 'express'
 
 export function jsonPathTranslate (jPath: string): string {
   if (!(jPath.startsWith('[') && jPath.endsWith(']'))) {
@@ -58,3 +59,15 @@ export function toCSV (records: CSVRecord[]): string {
   })
   return csv
 }
+
+export const apiResponse =
+  (res: Response, status = 200) =>
+    (data: any, success?: boolean, errorMsg?: string, error?: Error) => {
+      return res.status(status).json(data)
+    }
+
+export const apiError =
+  (res: Response, status = 500) =>
+    (errorMsg: string, error?: Error) => {
+      return res.status(status).json({ errorMsg, error })
+    }

@@ -20,7 +20,13 @@ import {
   simulationBinDir
 } from '../lib/config'
 import { Request, Response } from 'express'
-import type { DPType, DPRange } from '../lib/types'
+import type {
+  DPType,
+  DPRange,
+  paramInfo,
+  JobInfo,
+  SimulationStatInfo
+} from '../lib/types'
 import {
   DPSetList,
   generateDPCSVFiles,
@@ -31,72 +37,14 @@ import { generateSimulation } from '../lib/jobhelper'
 import Logger from '../lib/logger'
 import { getUserQueue } from '../lib/queueworker'
 import { Job } from 'bullmq'
-import { parseDPCSVFile } from '../lib/common'
-
-type JobQueue = {
-  active: Job<any, any, string>[]
-  waiting: Job<any, any, string>[]
-  failed: Job<any, any, string>[]
-  completed: Job<any, any, string>[]
-  delayed: Job<any, any, string>[]
-}
+import { apiError, apiResponse, parseDPCSVFile } from '../lib/common'
 
 const allJobTypes = ['active', 'completed', 'waiting', 'failed', 'delayed']
 
-type paramInfo = { [key: string]: string }
-
-type JobInfo = {
-  id: any
-  name: string
-  createTime: number
-  state: string
-  simulationId: string
-  simulationName: string
-  simulationTime: number
-}
-
-type SimulationInfo = {
-  id: string
-  name: string
-  createTime: number
-  active: JobInfo[]
-  failed: JobInfo[]
-  completed: JobInfo[]
-  delayed: JobInfo[]
-  waiting: JobInfo[]
-}
-
-type SimulationStatInfo = {
-  id: string
-  name: string
-  createTime: number
-  activeCount: number
-  failedCount: number
-  completedCount: number
-  delayedCount: number
-  waitingCount: number
-}
-
-const getJobState = (job: Job, jobQueue: JobQueue): string => {
-  const active = jobQueue.active.map((job) => job.id)
-  const completed = jobQueue.completed.map((job) => job.id)
-  const waiting = jobQueue.waiting.map((job) => job.id)
-  const failed = jobQueue.failed.map((job) => job.id)
-  const delayed = jobQueue.delayed.map((job) => job.id)
-  return active.indexOf(job.id) >= 0
-    ? 'active'
-    : completed.indexOf(job.id) >= 0
-      ? 'completed'
-      : waiting.indexOf(job.id) >= 0
-        ? 'waiting'
-        : failed.indexOf(job.id) >= 0
-          ? 'failed'
-          : delayed.indexOf(job.id) >= 0
-            ? 'delayed'
-            : 'unknown'
-}
+const router = express.Router()
 
 const paramToObj = (paramsStr: string) => {
+  if (!paramsStr) return {}
   const paramKVs = paramsStr
     .trim()
     .split(' ')
@@ -109,44 +57,32 @@ const paramToObj = (paramsStr: string) => {
   return obj
 }
 
-const router = express.Router()
-
-const apiResponse =
-  (res: Response, status = 200) =>
-    (data: any, success?: boolean, errorMsg?: string, error?: Error) => {
-      return res.status(status).json(data)
-    }
-
-const apiError =
-  (res: Response, status = 500) =>
-    (errorMsg: string, error?: Error) => {
-      return res.status(status).json({ errorMsg, error })
-    }
-
-const returnJob = (
+const returnJob = async (
   jobs: Job<any, any, string>[],
-  queuedJobs: JobQueue,
   filter?: any,
   sorter?: any
-): JobInfo[] => {
-  let rtn: Job<any, any, string>[] = jobs
+): Promise<JobInfo[]> => {
+  let _jobs: Job<any, any, string>[] = jobs
   if (filter) {
-    rtn = rtn.filter(filter)
+    _jobs = _jobs.filter(filter)
   }
   if (sorter) {
-    rtn = rtn.sort(sorter)
+    _jobs = _jobs.sort(sorter)
   }
-  return rtn.map((job) => {
-    return {
+  const rtn: JobInfo[] = []
+  for (const job of _jobs) {
+    const jobState = await job.getState()
+    rtn.push({
       id: job.id,
       name: job.name,
       simulationId: job.data.simulationId,
       simulationName: job.data.simulationName,
       simulationTime: job.data.simulationTime,
       createTime: job.processedOn as number,
-      state: getJobState(job, queuedJobs)
-    }
-  })
+      state: jobState
+    })
+  }
+  return rtn
 }
 
 router.post('/uploadExe', (req: Request, res: Response) => {
@@ -348,82 +284,32 @@ router.post('/createJobs', async (req: Request, res: Response) => {
   }
 })
 
-router.get('/getActiveJobs', async (req, res) => {
-  const { start, end } = req.body
-  // const { username } = req.user as { [username: string]: string }
-  const cmdQueue = getUserQueue('DSE').queue
-  const activeJobs = await cmdQueue.getActive(start, end)
-  return apiResponse(res)(activeJobs)
-})
-
-router.get('/getWaitingJobs', async (req, res) => {
-  const { start, end } = req.body
-  // const { username } = req.user as { [username: string]: string }
-  const cmdQueue = getUserQueue('DSE').queue
-  const waitingJobs = await cmdQueue.getWaiting(start, end)
-  return apiResponse(res)(waitingJobs)
-})
-
-router.post('/getCompletedJobs', async (req, res) => {
-  const { start, end } = req.body
-  // const { username } = req.user as { [username: string]: string }
-  const cmdQueue = getUserQueue('DSE').queue
-  const completedJobs = await cmdQueue.getCompleted(start, end)
-  return apiResponse(res)(completedJobs)
-})
-
-router.post('/getFailedJobs', async (req, res) => {
-  const { start, end } = req.body
-  // const { username } = req.user as { [username: string]: string }
-  const cmdQueue = getUserQueue('DSE').queue
-  const failedJobs = await cmdQueue.getFailed(start, end)
-  return apiResponse(res)(failedJobs)
-})
-
 router.post('/getJobs', async (req, res) => {
   const { start, end, state } = req.body
   // const { username } = req.user as { [username: string]: string }
   const cmdQueue = getUserQueue('DSE').queue
-  const active = await cmdQueue.getActive(start, end)
-  const waiting = await cmdQueue.getWaiting(start, end)
-  const failed = await cmdQueue.getFailed(start, end)
-  const completed = await cmdQueue.getCompleted(start, end)
-  const delayed = await cmdQueue.getDelayed(start, end)
   const allJobs = await cmdQueue.getJobs(state, start, end)
-  const jobQueue = { active, waiting, failed, completed, delayed }
-  return apiResponse(res)(returnJob(allJobs, jobQueue))
+  const rtn = await returnJob(allJobs)
+  return apiResponse(res)(rtn)
 })
 
 router.post('/getSimulationJobs', async (req, res) => {
   const { start, end, state, simulationId } = req.body
   // const { username } = req.user as { [username: string]: string }
   const cmdQueue = getUserQueue('DSE').queue
-  const active = await cmdQueue.getActive(start, end)
-  const waiting = await cmdQueue.getWaiting(start, end)
-  const failed = await cmdQueue.getFailed(start, end)
-  const completed = await cmdQueue.getCompleted(start, end)
-  const delayed = await cmdQueue.getDelayed(start, end)
+
   const allJobs = await cmdQueue.getJobs(state, start, end)
-  const jobQueue = { active, waiting, failed, completed, delayed }
-  return apiResponse(res)(
-    returnJob(
-      allJobs,
-      jobQueue,
-      (job: Job) => job.data.simulationId === simulationId
-    )
+  const rtn = await returnJob(
+    allJobs,
+    (job: Job) => job.data.simulationId === simulationId
   )
+  return apiResponse(res)(rtn)
 })
 
 router.post('/getSimulations', async (req, res) => {
-  const { start, end } = req.body
   const cmdQueue = getUserQueue('DSE').queue
-  const active = await cmdQueue.getActive()
-  const waiting = await cmdQueue.getWaiting()
-  const failed = await cmdQueue.getFailed()
-  const completed = await cmdQueue.getCompleted()
-  const delayed = await cmdQueue.getDelayed()
+
   const allJobs = await cmdQueue.getJobs(allJobTypes)
-  const jobQueue = { active, waiting, failed, completed, delayed }
 
   const groupBy = (jobs: JobInfo[], keyGetter: any) => {
     const map = new Map()
@@ -438,22 +324,14 @@ router.post('/getSimulations', async (req, res) => {
     })
     return Object.fromEntries(map.entries())
   }
-  const allJobInfos = returnJob(allJobs, jobQueue)
+  const allJobInfos = await returnJob(allJobs)
   const simulations = groupBy(allJobInfos, (job: JobInfo) => job.simulationName)
   return apiResponse(res)(simulations)
 })
 
 router.post('/getSimulationList', async (req, res) => {
-  const { start, end } = req.body
   const cmdQueue = getUserQueue('DSE').queue
-  const active = await cmdQueue.getActive()
-  const waiting = await cmdQueue.getWaiting()
-  const failed = await cmdQueue.getFailed()
-  const completed = await cmdQueue.getCompleted()
-  const delayed = await cmdQueue.getDelayed()
   const allJobs = await cmdQueue.getJobs(allJobTypes)
-  const jobQueue = { active, waiting, failed, completed, delayed }
-
   const groupBy = (jobs: JobInfo[], keyGetter: any) => {
     const map = new Map()
     jobs.forEach((job) => {
@@ -467,23 +345,45 @@ router.post('/getSimulationList', async (req, res) => {
     })
     return Object.fromEntries(map.entries())
   }
-  const allJobInfos = returnJob(allJobs, jobQueue)
+  const allJobInfos = await returnJob(allJobs)
   const simulations = groupBy(allJobInfos, (job: JobInfo) => job.simulationId)
   const rtn: SimulationStatInfo[] = []
   try {
     Object.keys(simulations).forEach((key: string) => {
-      const simulation = simulations[key]
-      if (simulation.length > 0) {
-        rtn.push({
-          id: simulation[0].simulationId,
-          name: simulation[0].simulationName,
-          createTime: simulation[0].simulationTime,
+      const jobs: JobInfo[] = simulations[key]
+      if (jobs.length > 0) {
+        const ans: SimulationStatInfo = {
+          id: jobs[0].simulationId,
+          name: jobs[0].simulationName,
+          createTime: jobs[0].simulationTime,
           activeCount: 0,
           failedCount: 0,
           completedCount: 0,
           delayedCount: 0,
           waitingCount: 0
-        })
+        }
+        for (const job of jobs) {
+          switch (job.state) {
+            case 'active':
+              ans.activeCount++
+              break
+            case 'failed':
+              ans.failedCount++
+              break
+            case 'completed':
+              ans.completedCount++
+              break
+            case 'delayed':
+              ans.delayedCount++
+              break
+            case 'waiting':
+              ans.waitingCount++
+              break
+            default:
+              break
+          }
+        }
+        rtn.push(ans)
       }
     })
   } catch (err) {
@@ -498,16 +398,9 @@ router.post('getSimulationInfos', async (req, res) => {
 
   // const { username } = req.user as { [username: string]: string }
   const cmdQueue = getUserQueue('DSE').queue
-  const active = await cmdQueue.getActive(start, end)
-  const waiting = await cmdQueue.getWaiting(start, end)
-  const failed = await cmdQueue.getFailed(start, end)
-  const completed = await cmdQueue.getCompleted(start, end)
-  const delayed = await cmdQueue.getDelayed(start, end)
   const allJobs = await cmdQueue.getJobs(state, start, end)
-  const jobQueue = { active, waiting, failed, completed, delayed }
-  const jobInfos = returnJob(
+  const jobInfos = await returnJob(
     allJobs,
-    jobQueue,
     (job: Job) => job.data.simulationId === simulationId
   )
   return apiResponse(res)(jobInfos)
@@ -543,14 +436,9 @@ router.get('/getJobs', async (req, res) => {
   const _end = Number(end)
   const _type = type as string
   const cmdQueue = getUserQueue('DSE').queue
-  const active = await cmdQueue.getActive(_start, _end)
-  const waiting = await cmdQueue.getWaiting(_start, _end)
-  const failed = await cmdQueue.getFailed(_start, _end)
-  const completed = await cmdQueue.getCompleted(_start, _end)
-  const delayed = await cmdQueue.getDelayed(_start, _end)
   const allJobs = await cmdQueue.getJobs(_type, _start, _end)
-  const jobQueue = { active, waiting, failed, completed, delayed }
-  return apiResponse(res)(returnJob(allJobs, jobQueue))
+  const rtn = await returnJob(allJobs)
+  return apiResponse(res)(rtn)
 })
 
 router.get('/aggregateData', async (req, res) => {

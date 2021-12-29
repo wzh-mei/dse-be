@@ -33,23 +33,31 @@ class UserQueue {
       this.queueName,
       async (job) => {
         const { cmd, args, cwd } = job.data
-        job.updateProgress(10)
         const p = new Promise((resolve, reject) => {
           const exe = spawn(cmd, args, { cwd })
+          exe.on('spawn', () => {
+            job.updateProgress(0)
+          })
           exe.on('close', (code) => {
             const message = `child process exited with code ${code}`
             if (code === 0) {
+              job.updateProgress(100)
               resolve(code)
             } else {
+              job.updateProgress(80)
               reject(new Error(message))
             }
           })
           exe.on('error', (err) => {
+            job.updateProgress(77)
             reject(err)
+          })
+          exe.on('exit', (code, signal) => {
+            Logger.debug(code)
+            Logger.debug(signal)
           })
         })
         await p
-        job.updateProgress(100)
       },
       { concurrency: os.cpus().length, connection }
     )
@@ -59,7 +67,9 @@ class UserQueue {
       Logger.info(`${job?.jobId} done`)
     })
     this.queueEvents.on('failed', (job, err) => {
-      Logger.error(`${job?.jobId} error, message: ${err}`)
+      Logger.error(
+        `${job?.jobId} error: ${job.failedReason}, stacktrace: ${job.stacktrace}`
+      )
     })
 
     this.add2BullBoard()
