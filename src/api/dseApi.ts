@@ -19,7 +19,8 @@ import {
   appDependencyDirname,
   simulationRunDir,
   simulationBinDir,
-  downloadJobZipDir
+  downloadJobZipDir,
+  paramFileName
 } from '../lib/config'
 import { Request, Response } from 'express'
 import type {
@@ -36,6 +37,7 @@ import {
 } from '../lib/dphelper'
 
 import { generateSimulation } from '../lib/jobhelper'
+import { aggregateDatas } from '../lib/datahelper'
 import Logger from '../lib/logger'
 import { getUserQueue } from '../lib/queueworker'
 import { Job } from 'bullmq'
@@ -503,9 +505,22 @@ router.get('/downloadJob', async (req, res) => {
   }
 })
 
-router.get('/aggregateData', async (req, res) => {
-  const { DATA_FILE, DATA_KEYWORD, JobIds } = req.body
-  return apiResponse(res)('success')
+router.post('/aggregateData', async (req, res) => {
+  const { DATA_FILE, DOMAIN_KEYWORD, DATA_KEYWORD, jobs } = req.body
+  const cmdQueue = getUserQueue('DSE').queue
+  const workDirs = []
+  for (const jobId of jobs) {
+    const job = await cmdQueue.getJob(jobId)
+    workDirs.push(job?.data.cwd)
+  }
+  const ans = aggregateDatas(
+    workDirs,
+    paramFileName,
+    DATA_FILE,
+    DOMAIN_KEYWORD,
+    DATA_KEYWORD
+  )
+  return apiResponse(res)(ans)
 })
 
 export { router as ApiRouter }
