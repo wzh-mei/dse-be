@@ -6,61 +6,38 @@ function readFileLines (filename: string): string[] {
   return fs.readFileSync(filename).toString().split('\n')
 }
 
-// function readData (
-//   workSpace: string,
-//   fileName: string,
-//   domainKeyword: string,
-//   dataKeyword: string
-// ): string {
-//   const dataFilePath = `${workSpace}/${fileName}`
-//   // const dataFile = fs.readFileSync(dataFilePath)
-//   const dataFileRl = readline.createInterface({
-//     input: fs.createReadStream(dataFilePath)
-//   })
-//   let domainTest = false
-//   let dataTest = false
-//   let res = ''
-//   dataFileRl.on('line', function (line) {
-//     const re1 = new RegExp(domainKeyword)
-//     const re2 = new RegExp(dataKeyword)
-//     if (re1.test(line)) {
-//       domainTest = true
-//     }
-//     if (domainTest && !dataTest && re2.test(line)) {
-//       dataTest = true
-//       res = line
-//     }
-//   })
-//   return res
-// }
-
 export function getStatistic (
   workDir: string,
   fileName: string,
   domainKeyword: string,
   dataKeyword: string
 ): string {
-  const dataFilePath = `${workDir}/${fileName}`
-  // const dataFile = fs.readFileSync(dataFilePath)
-  const dataFileLines = readFileLines(dataFilePath)
-  let domainTest = false
-  let dataTest = false
-  let res = ''
-  for (const i in dataFileLines) {
-    const line = dataFileLines[i]
-    const re1 = new RegExp(domainKeyword)
-    const re2 = new RegExp(dataKeyword)
-    if (re1.test(line)) {
-      Logger.debug(line)
-      domainTest = true
+  try {
+    const dataFilePath = `${workDir}/${fileName}`
+    // const dataFile = fs.readFileSync(dataFilePath)
+    const dataFileLines = readFileLines(dataFilePath)
+    let domainTest = false
+    let dataTest = false
+    let res = ''
+    for (const i in dataFileLines) {
+      const line = dataFileLines[i]
+      const re1 = new RegExp(domainKeyword)
+      const re2 = new RegExp(dataKeyword)
+      if (re1.test(line)) {
+        Logger.debug(line)
+        domainTest = true
+      }
+      if (domainTest && !dataTest && re2.test(line)) {
+        dataTest = true
+        Logger.debug(line)
+        res = line.trim()
+      }
     }
-    if (domainTest && !dataTest && re2.test(line)) {
-      dataTest = true
-      Logger.debug(line)
-      res = line.trim()
-    }
+    return res
+  } catch (err) {
+    Logger.error(err)
+    return ''
   }
-  return res
 }
 
 export function getParam (workDir: string, fileName: string): any {
@@ -83,6 +60,32 @@ export function aggregateData (
     res.push({
       param: getParam(subDir, paramFileName),
       data: getStatistic(subDir, dataFileName, domainKeyword, dataKeyword)
+    })
+  }
+  return res
+}
+
+/**
+ * Aggregate selected data from exe run directory
+ * @param workDirs
+ * @param paramFileName
+ * @param dataFileName
+ * @param domainKeyword
+ * @param dataKeyword
+ * @returns
+ */
+export function aggregateDatas (
+  workDirs: string[],
+  paramFileName: string,
+  dataFileName: string,
+  domainKeyword: string,
+  dataKeyword: string
+): DataStat[] {
+  const res: DataStat[] = []
+  for (const workDir of workDirs) {
+    res.push({
+      param: getParam(workDir, paramFileName),
+      data: getStatistic(workDir, dataFileName, domainKeyword, dataKeyword)
     })
   }
   return res

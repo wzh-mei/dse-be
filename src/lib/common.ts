@@ -2,7 +2,8 @@
 import { CSVRecord, DPSet, DPType } from './types'
 import * as fs from 'fs'
 import parse = require('csv-parse/lib/sync')
-import { Response } from 'express'
+import { Request, Response } from 'express'
+import Logger from './logger'
 
 export function jsonPathTranslate (jPath: string): string {
   if (!(jPath.startsWith('[') && jPath.endsWith(']'))) {
@@ -71,3 +72,37 @@ export const apiError =
     (errorMsg: string, error?: Error) => {
       return res.status(status).json({ errorMsg, error })
     }
+
+export const commonHandler = (
+  req: Request,
+  res: Response,
+  func: (r: Request) => any
+) => {
+  try {
+    return apiResponse(res)(func(req))
+  } catch (err) {
+    Logger.error(err)
+    return apiError(res)((err as Error).message, err as Error)
+  }
+}
+
+export const commonAsyncHandler = async (
+  req: Request,
+  res: Response,
+  func: (r: Request) => Promise<any>
+) => {
+  try {
+    return apiResponse(res)(await func(req))
+  } catch (err) {
+    Logger.error(err)
+    return apiError(res)((err as Error).message, err as Error)
+  }
+}
+
+// export const asyncApiHandlerGenerator =
+//   (func: (r: Request) => Promise<any>) => (req: Request, res: Response) =>
+//     commonAsyncHandler(req, res, func)
+
+// export const apiHandlerGenerator =
+//   (func: (r: Request) => Promise<any>) => (req: Request, res: Response) =>
+//     commonHandler(req, res, func)

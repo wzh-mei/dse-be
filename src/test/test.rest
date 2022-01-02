@@ -74,3 +74,58 @@ Content-Type: application/json
    "start": 0,
    "end:": 20
 }
+
+###
+POST http://localhost:8089/testapi/getCompletedJobsTest
+Content-Type: application/json
+
+{
+   "start": 0,
+   "end:": 20
+
+}
+
+###
+POST http://localhost:8089/api/getRunOutputFileList
+Content-Type: application/json
+
+{
+  "runDir": "/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/0"
+
+}
+
+###
+POST http://localhost:8089/api/getJobOutputFileList
+Content-Type: application/json
+
+{
+  "jobId": 170
+
+}
+
+###
+POST http://localhost:8089/testapi/downloadJobTest
+Content-Type: application/json
+
+{
+  "jobId": "2"
+
+}
+
+###
+POST http://localhost:8089/testapi/downloadJobTest
+Content-Type: application/json
+
+{
+  "jobId": 170
+
+}
+
+###
+POST http://localhost:8089/api/getJob
+Content-Type: application/json
+
+{
+  "jobId": 170
+
+}

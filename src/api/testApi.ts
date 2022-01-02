@@ -1,5 +1,6 @@
 import * as express from 'express'
-import { apiResponse } from '../lib/common'
+import { apiResponse, commonAsyncHandler } from '../lib/common'
+import Logger from '../lib/logger'
 import { getUserQueue } from '../lib/queueworker'
 
 const router = express.Router()
@@ -52,5 +53,27 @@ router.post('/getFailedJobs', async (req, res) => {
   const failedJobs = await cmdQueue.getFailed(start, end)
   return apiResponse(res)(failedJobs)
 })
+
+router.post('/getCompletedJobsTest', async (req, res) => {
+  commonAsyncHandler(req, res, async (r) => {
+    const { start, end } = r.body
+    // const { username } = req.user as { [username: string]: string }
+    const cmdQueue = getUserQueue('DSE').queue
+    const completedJobs = await cmdQueue.getCompleted(start, end)
+    Logger.debug(completedJobs)
+
+    return completedJobs
+  })
+})
+
+router.post('/downloadJobTest', (req, res) =>
+  commonAsyncHandler(req, res, async (r) => {
+    const { jobId } = r.body
+    const cmdQueue = getUserQueue('DSE').queue
+    const job = await cmdQueue.getJob(jobId)
+    const jobRunDir = job?.data.cwd
+    return jobRunDir
+  })
+)
 
 export { router as TestApiRouter }

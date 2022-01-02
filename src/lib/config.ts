@@ -95,6 +95,13 @@ const jobNamePrefix = iniConf?.common.jobNamePrefix
   ? iniConf.common.jobNamePrefix
   : 'job'
 
+const paramFileName = iniConf?.common.paramFileName
+  ? iniConf.common.paramFileName
+  : 'sim_param.json'
+const downloadJobZipDir = iniConf?.common.downloadJobZipDir
+  ? iniConf.common.downloadJobZipDir
+  : 'gen/download/job'
+
 export {
   dpcsvUploadDir,
   dpcsvGenerateDir,
@@ -109,5 +116,7 @@ export {
   simulationRunDir,
   simulationBinDir,
   jobNamePrefix,
-  logDir
+  paramFileName,
+  logDir,
+  downloadJobZipDir
 }

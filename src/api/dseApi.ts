@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import * as decompress from 'decompress'
+import { zip } from 'zip-a-folder'
 
 import {
   dpcsvUploadDir,
@@ -17,7 +18,8 @@ import {
   tmpUploadDir,
   appDependencyDirname,
   simulationRunDir,
-  simulationBinDir
+  simulationBinDir,
+  downloadJobZipDir
 } from '../lib/config'
 import { Request, Response } from 'express'
 import type {
@@ -37,7 +39,13 @@ import { generateSimulation } from '../lib/jobhelper'
 import Logger from '../lib/logger'
 import { getUserQueue } from '../lib/queueworker'
 import { Job } from 'bullmq'
-import { apiError, apiResponse, parseDPCSVFile } from '../lib/common'
+import {
+  apiError,
+  apiResponse,
+  commonAsyncHandler,
+  commonHandler,
+  parseDPCSVFile
+} from '../lib/common'
 
 const allJobTypes = ['active', 'completed', 'waiting', 'failed', 'delayed']
 
@@ -393,7 +401,7 @@ router.post('/getSimulationList', async (req, res) => {
   return apiResponse(res)(rtn)
 })
 
-router.post('getSimulationInfos', async (req, res) => {
+router.post('/getSimulationInfos', async (req, res) => {
   const { start, end, state, simulationId } = req.body
 
   // const { username } = req.user as { [username: string]: string }
@@ -406,42 +414,97 @@ router.post('getSimulationInfos', async (req, res) => {
   return apiResponse(res)(jobInfos)
 })
 
-// router.get('/getSimulationJobs', async (req, res) => {
-//   const { start, end, type, simulation } = req.query
-
-//   const cmdQueue = getUserQueue('DSE').queue
-//   const active = await cmdQueue.getActive(
-//     start as unknown as number,
-//     end as unknown as number
-//   )
-//   const waiting = await cmdQueue.getWaiting(start, end)
-//   const failed = await cmdQueue.getFailed(start, end)
-//   const completed = await cmdQueue.getCompleted(start, end)
-//   const delayed = await cmdQueue.getDelayed(start, end)
-//   const allJobs = await cmdQueue.getJobs(type, start, end)
-//   const jobQueue = { active, waiting, failed, completed, delayed }
-//   return apiResponse(res)(
-//     returnJob(
-//       allJobs,
-//       jobQueue,
-//       (job: Job) => job.data.simulationName === simulation
-//     )
-//   )
+// router.post('/downloadJob', async (req, res) => {
+//   try {
+//     const { jobId } = req.body
+//     const cmdQueue = getUserQueue('DSE').queue
+//     const job = await cmdQueue.getJob(jobId)
+//     const jobRunDir = job?.data.cwd
+//     return apiResponse(res)(jobRunDir)
+//   } catch (err) {
+//     Logger.error(err)
+//     return apiError(res)((err as Error).message)
+//   }
 // })
 
-router.get('/getJobs', async (req, res) => {
-  // const { username } = req.user as { [username: string]: string }
-  const { start, end, type } = req.query
-  const _start = Number(start)
-  const _end = Number(end)
-  const _type = type as string
+router.post('/getRunOutputFileList', (req, res) =>
+  commonHandler(req, res, (r) => {
+    const { runDir } = r.body
+    if (!fs.existsSync(runDir)) {
+      throw new Error('File not exist')
+    }
+    const res = fs
+      .readdirSync(runDir)
+      .filter(
+        (filename) =>
+          filename.endsWith('.csv') &&
+          filename !== `${dpcsvGenerateTemplateNamePrefix}.csv`
+      )
+    return res
+  })
+)
+
+router.post('/getJobOutputFileList', async (req, res) =>
+  commonAsyncHandler(req, res, async (r) => {
+    const { jobId } = r.body
+    const cmdQueue = getUserQueue('DSE').queue
+    const job = await cmdQueue.getJob(jobId)
+    const jobState = await job?.getState()
+    if (jobState !== 'completed') {
+      return []
+    }
+    const runDir = job?.data.cwd
+    if (!fs.existsSync(runDir)) {
+      throw new Error('File not exist')
+    }
+    const res = fs
+      .readdirSync(runDir)
+      .filter(
+        (filename) =>
+          filename.endsWith('.csv') &&
+          filename !== `${dpcsvGenerateTemplateNamePrefix}.csv`
+      )
+    return res
+  })
+)
+
+// router.get('/getJobs', async (req, res) => {
+//   // const { username } = req.user as { [username: string]: string }
+//   const { start, end, type } = req.query
+//   const _start = Number(start)
+//   const _end = Number(end)
+//   const _type = type as string
+//   const cmdQueue = getUserQueue('DSE').queue
+//   const allJobs = await cmdQueue.getJobs(_type, _start, _end)
+//   const rtn = await returnJob(allJobs)
+//   return apiResponse(res)(rtn)
+// })
+
+router.get('/downloadJob', async (req, res) => {
+  const jobId = req.query.jobId as string
   const cmdQueue = getUserQueue('DSE').queue
-  const allJobs = await cmdQueue.getJobs(_type, _start, _end)
-  const rtn = await returnJob(allJobs)
-  return apiResponse(res)(rtn)
+  const job = await cmdQueue.getJob(jobId)
+  const jobState = await job?.getState()
+  if (jobState !== 'completed') {
+    return apiError(res)('The job is not completed')
+  }
+  const runDir = job?.data.cwd
+  if (!fs.existsSync(runDir)) {
+    return apiError(res)('Not found job run folder')
+  }
+  if (fs.statSync(runDir).isDirectory()) {
+    const folderName = runDir.split(/\\|\//).pop()
+    const zipPath = path.resolve(`${downloadJobZipDir}/${folderName}.zip`)
+    zip(runDir, zipPath).then(() => {
+      return res.download(zipPath)
+    })
+  } else {
+    return res.download(runDir)
+  }
 })
 
 router.get('/aggregateData', async (req, res) => {
+  const { DATA_FILE, DATA_KEYWORD, JobIds } = req.body
   return apiResponse(res)('success')
 })
 
