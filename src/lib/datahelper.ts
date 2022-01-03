@@ -14,7 +14,6 @@ export function getStatistic (
 ): string {
   try {
     const dataFilePath = `${workDir}/${fileName}`
-    // const dataFile = fs.readFileSync(dataFilePath)
     const dataFileLines = readFileLines(dataFilePath)
     let domainTest = false
     let dataTest = false
@@ -24,13 +23,11 @@ export function getStatistic (
       const re1 = new RegExp(domainKeyword)
       const re2 = new RegExp(dataKeyword)
       if (re1.test(line)) {
-        Logger.debug(line)
         domainTest = true
       }
       if (domainTest && !dataTest && re2.test(line)) {
         dataTest = true
-        Logger.debug(line)
-        res = line.trim()
+        res = line.replace(re2, '').replace(':', '').trim()
       }
     }
     return res

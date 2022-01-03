@@ -1,4 +1,4 @@
-import { aggregateData } from '../lib/datahelper'
+import { aggregateDatas } from '../lib/datahelper'
 import Logger from '../lib/logger'
 
 // const ijr = {
@@ -134,9 +134,21 @@ import Logger from '../lib/logger'
 //   '../extra/dps/cofs_dp.csv'
 // )
 
-const ans = aggregateData(
-  '/home/wmei/Workspace/dse-be/gen/run/sim0',
-  ['0', '1', '2'],
+// const ans = aggregateData(
+//   '/home/wmei/Workspace/dse-be/gen/run/sim0',
+//   ['0', '1', '2'],
+//   'sim_param.json',
+//   'received_packet_statistic.csv',
+//   'layer IV port 0',
+//   'Total BW'
+// )
+
+const ans = aggregateDatas(
+  [
+    '/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/0',
+    '/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/1',
+    '/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/2'
+  ],
   'sim_param.json',
   'received_packet_statistic.csv',
   'layer IV port 0',
