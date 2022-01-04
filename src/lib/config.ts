@@ -106,6 +106,10 @@ const cpuUsageRatio = iniConf?.common.cpuUsageRatio
   ? iniConf.common.cpuUsageRatio
   : 0.8
 
+const downloadDataDir = iniConf?.common.downloadDataDir
+  ? iniConf.common.downloadDataDir
+  : 'gen/download/data'
+
 export {
   dpcsvUploadDir,
   dpcsvGenerateDir,
@@ -123,5 +127,6 @@ export {
   paramFileName,
   logDir,
   downloadJobZipDir,
+  downloadDataDir,
   cpuUsageRatio
 }

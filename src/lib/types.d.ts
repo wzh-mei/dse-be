@@ -49,6 +49,7 @@ export type JobInfo = {
   id: any
   name: string
   createTime: number
+  finishTime: number
   state: string
   simulationId: string
   simulationName: string

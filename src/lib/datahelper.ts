@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import Logger from './logger'
-import { DataStat } from './types'
+import { CSVRecord, DataStat } from './types'
 
 function readFileLines (filename: string): string[] {
   return fs.readFileSync(filename).toString().split('\n')
@@ -77,13 +77,33 @@ export function aggregateDatas (
   dataFileName: string,
   domainKeyword: string,
   dataKeyword: string
-): DataStat[] {
-  const res: DataStat[] = []
+): CSVRecord[] {
+  const csvRecords: CSVRecord[] = []
+  const rawRecords: DataStat[] = []
   for (const workDir of workDirs) {
-    res.push({
+    rawRecords.push({
       param: getParam(workDir, paramFileName),
       data: getStatistic(workDir, dataFileName, domainKeyword, dataKeyword)
     })
   }
-  return res
+  for (const record of rawRecords) {
+    const csvRecord: CSVRecord = {}
+    for (const k in record.param) {
+      const p = record.param[k]
+      const constructorTyp = Object.prototype.toString.call(p)
+      switch (constructorTyp.toString().trim()) {
+        case '[object Object]':
+          for (const subK in p.param) {
+            csvRecord[`${k}.${subK}`] = p.param[subK]
+          }
+          break
+        default:
+          csvRecord[k] = p
+          break
+      }
+    }
+    csvRecord[`${domainKeyword}.${dataKeyword}`] = record.data
+    csvRecords.push(csvRecord)
+  }
+  return csvRecords
 }

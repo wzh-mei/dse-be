@@ -20,7 +20,8 @@ import {
   simulationRunDir,
   simulationBinDir,
   downloadJobZipDir,
-  paramFileName
+  paramFileName,
+  downloadDataDir
 } from '../lib/config'
 import { Request, Response } from 'express'
 import type {
@@ -46,7 +47,8 @@ import {
   apiResponse,
   commonAsyncHandler,
   commonHandler,
-  parseDPCSVFile
+  parseDPCSVFile,
+  toCSV
 } from '../lib/common'
 
 const allJobTypes = ['active', 'completed', 'waiting', 'failed', 'delayed']
@@ -89,6 +91,7 @@ const returnJob = async (
       simulationName: job.data.simulationName,
       simulationTime: job.data.simulationTime,
       createTime: job.processedOn as number,
+      finishTime: job.finishedOn as number,
       state: jobState
     })
   }
@@ -523,6 +526,30 @@ router.post('/aggregateData', async (req, res) => {
     DATA_KEYWORD
   )
   return apiResponse(res)(ans)
+})
+
+router.post('/downloadAggregateDataCSV', async (req, res) => {
+  const { DATA_FILE, DOMAIN_KEYWORD, DATA_KEYWORD, jobs } = req.body
+  const cmdQueue = getUserQueue('DSE').queue
+  const workDirs = []
+  for (const jobId of jobs) {
+    const job = await cmdQueue.getJob(jobId)
+    workDirs.push(job?.data.cwd)
+  }
+  const csvRecords = aggregateDatas(
+    workDirs,
+    paramFileName,
+    DATA_FILE,
+    DOMAIN_KEYWORD,
+    DATA_KEYWORD
+  )
+  const csvString = toCSV(csvRecords)
+  if (!fs.existsSync(downloadDataDir)) {
+    fs.mkdirSync(downloadDataDir, { recursive: true })
+  }
+  const filePath = `${downloadDataDir}/output-${new Date().getDate()}.csv`
+  fs.writeFileSync(filePath, csvString)
+  return res.download(filePath)
 })
 
 export { router as ApiRouter }
