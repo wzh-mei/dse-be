@@ -6,6 +6,7 @@ import * as os from 'os'
 import * as Redis from 'ioredis'
 import * as dotenv from 'dotenv'
 import Logger from './logger'
+import { cpuUsageRatio } from './config'
 
 dotenv.config()
 
@@ -59,7 +60,7 @@ class UserQueue {
         })
         await p
       },
-      { concurrency: os.cpus().length, connection }
+      { concurrency: Math.ceil(os.cpus().length * cpuUsageRatio), connection }
     )
 
     this.queueEvents = new QueueEvents(this.queueName, { connection })

@@ -102,6 +102,10 @@ const downloadJobZipDir = iniConf?.common.downloadJobZipDir
   ? iniConf.common.downloadJobZipDir
   : 'gen/download/job'
 
+const cpuUsageRatio = iniConf?.common.cpuUsageRatio
+  ? iniConf.common.cpuUsageRatio
+  : 0.8
+
 export {
   dpcsvUploadDir,
   dpcsvGenerateDir,
@@ -118,5 +122,6 @@ export {
   jobNamePrefix,
   paramFileName,
   logDir,
-  downloadJobZipDir
+  downloadJobZipDir,
+  cpuUsageRatio
 }

@@ -185,7 +185,6 @@ router.post('/uploadDPCSV', (req: Request, res: Response) => {
 })
 
 router.post('/uploadConfigFile', (req: Request, res: Response) => {
-  // const configtype = req.body.configtype
   const upload = multer({ dest: paramfileUploadDir }).single('file')
   upload(req, res, (err) => {
     if (err) {
@@ -493,6 +492,9 @@ router.get('/downloadJob', async (req, res) => {
   const runDir = job?.data.cwd
   if (!fs.existsSync(runDir)) {
     return apiError(res)('Not found job run folder')
+  }
+  if (!fs.existsSync(downloadJobZipDir)) {
+    fs.mkdirSync(downloadJobZipDir, { recursive: true })
   }
   if (fs.statSync(runDir).isDirectory()) {
     const folderName = runDir.split(/\\|\//).pop()
