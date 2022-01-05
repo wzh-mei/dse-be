@@ -6,7 +6,7 @@ import * as os from 'os'
 import * as Redis from 'ioredis'
 import * as dotenv from 'dotenv'
 import Logger from './logger'
-import { cpuUsageRatio } from './config'
+import { concurrencyFactor } from './config'
 
 dotenv.config()
 
@@ -39,8 +39,8 @@ class UserQueue {
           exe.on('spawn', () => {
             job.updateProgress(0)
           })
-          exe.on('close', (code) => {
-            const message = `child process exited with code ${code}`
+          exe.on('close', (code, signal) => {
+            const message = `Child process exited with code ${code}, Signal: ${signal}`
             if (code === 0) {
               job.updateProgress(100)
               resolve(code)
@@ -50,17 +50,22 @@ class UserQueue {
             }
           })
           exe.on('error', (err) => {
-            job.updateProgress(77)
             reject(err)
           })
           exe.on('exit', (code, signal) => {
-            Logger.debug(code)
-            Logger.debug(signal)
+            const message = `Exit: Child process exited with code ${code}, Signal: ${signal}`
+            Logger.debug(message)
+          })
+          exe.on('message', (msg, handler) => {
+            Logger.debug(msg)
           })
         })
         await p
       },
-      { concurrency: Math.ceil(os.cpus().length * cpuUsageRatio), connection }
+      {
+        concurrency: Math.floor(os.cpus().length * concurrencyFactor),
+        connection
+      }
     )
 
     this.queueEvents = new QueueEvents(this.queueName, { connection })

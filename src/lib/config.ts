@@ -102,8 +102,8 @@ const downloadJobZipDir = iniConf?.common.downloadJobZipDir
   ? iniConf.common.downloadJobZipDir
   : 'gen/download/job'
 
-const cpuUsageRatio = iniConf?.common.cpuUsageRatio
-  ? iniConf.common.cpuUsageRatio
+const concurrencyFactor = iniConf?.common.concurrencyFactor
+  ? iniConf.common.concurrencyFactor
   : 0.8
 
 const downloadDataDir = iniConf?.common.downloadDataDir
@@ -128,5 +128,5 @@ export {
   logDir,
   downloadJobZipDir,
   downloadDataDir,
-  cpuUsageRatio
+  concurrencyFactor
 }
