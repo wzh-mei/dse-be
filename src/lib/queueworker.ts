@@ -37,10 +37,14 @@ class UserQueue {
         const p = new Promise((resolve, reject) => {
           const exe = spawn(cmd, args, { cwd })
           exe.on('spawn', () => {
+            job.log(`Job started at ${new Date().toLocaleString()}`)
+            job.update({ ...job.data, pid: exe.pid })
             job.updateProgress(0)
           })
           exe.on('close', (code, signal) => {
-            const message = `Child process exited with code ${code}, Signal: ${signal}`
+            const message = `Close: Child process closed at ${new Date().toLocaleString()}, Code: ${code}, Signal: ${signal}`
+            job.log(message)
+            job.update({ ...job.data, pid: null })
             if (code === 0) {
               job.updateProgress(100)
               resolve(code)
@@ -50,14 +54,20 @@ class UserQueue {
             }
           })
           exe.on('error', (err) => {
+            job.log(
+              `Job error at ${new Date().toLocaleString()}, message: ${
+                err.message
+              }`
+            )
             reject(err)
           })
           exe.on('exit', (code, signal) => {
             const message = `Exit: Child process exited with code ${code}, Signal: ${signal}`
-            Logger.debug(message)
+            job.log(message)
           })
           exe.on('message', (msg, handler) => {
-            Logger.debug(msg)
+            const message = `Message: ${msg}`
+            job.log(message)
           })
         })
         await p
@@ -71,6 +81,7 @@ class UserQueue {
     this.queueEvents = new QueueEvents(this.queueName, { connection })
     this.queueEvents.on('completed', (job) => {
       Logger.info(`${job?.jobId} done`)
+      Logger.info(job?.returnValue)
     })
     this.queueEvents.on('failed', (job, err) => {
       Logger.error(

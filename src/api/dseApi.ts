@@ -418,19 +418,6 @@ router.post('/getSimulationInfos', async (req, res) => {
   return apiResponse(res)(jobInfos)
 })
 
-// router.post('/downloadJob', async (req, res) => {
-//   try {
-//     const { jobId } = req.body
-//     const cmdQueue = getUserQueue('DSE').queue
-//     const job = await cmdQueue.getJob(jobId)
-//     const jobRunDir = job?.data.cwd
-//     return apiResponse(res)(jobRunDir)
-//   } catch (err) {
-//     Logger.error(err)
-//     return apiError(res)((err as Error).message)
-//   }
-// })
-
 router.post('/getRunOutputFileList', (req, res) =>
   commonHandler(req, res, (r) => {
     const { runDir } = r.body
@@ -471,18 +458,6 @@ router.post('/getJobOutputFileList', async (req, res) =>
     return res
   })
 )
-
-// router.get('/getJobs', async (req, res) => {
-//   // const { username } = req.user as { [username: string]: string }
-//   const { start, end, type } = req.query
-//   const _start = Number(start)
-//   const _end = Number(end)
-//   const _type = type as string
-//   const cmdQueue = getUserQueue('DSE').queue
-//   const allJobs = await cmdQueue.getJobs(_type, _start, _end)
-//   const rtn = await returnJob(allJobs)
-//   return apiResponse(res)(rtn)
-// })
 
 router.get('/downloadJob', async (req, res) => {
   const jobId = req.query.jobId as string
@@ -551,5 +526,68 @@ router.post('/downloadAggregateDataCSV', async (req, res) => {
   fs.writeFileSync(filePath, csvString)
   return res.download(filePath)
 })
+
+router.post('/retryJob', async (req, res) =>
+  commonAsyncHandler(req, res, async (r) => {
+    const { jobId } = r.body
+    const cmdQueue = getUserQueue('DSE').queue
+    const job = await cmdQueue.getJob(jobId)
+    const jobState = await job?.getState()
+    if (jobState === 'failed') job?.retry()
+    return 'success'
+  })
+)
+
+router.post('/stopJob', async (req, res) =>
+  commonAsyncHandler(req, res, async (r) => {
+    const { jobId } = r.body
+    const cmdQueue = getUserQueue('DSE').queue
+    const job = await cmdQueue.getJob(jobId)
+    if (await job?.isActive()) {
+      if (job?.data.pid) process.kill(job?.data.pid)
+      // job?.moveToFailed(new Error('Manually stopped'), '')
+      return { data: true, message: 'Success' }
+    } else if (await job?.isWaiting()) {
+      job?.remove()
+      return { data: true, message: 'Success' }
+    } else {
+      return { data: false, message: 'Job is not active' }
+    }
+  })
+)
+
+router.post('/stopSimulation', async (req, res) =>
+  commonAsyncHandler(req, res, async (r) => {
+    const { simId } = r.body
+    const cmdQueue = getUserQueue('DSE').queue
+    const allJobs = await cmdQueue.getJobs(allJobTypes)
+    const simJobs = allJobs.filter((job) => job.data.simulationId === simId)
+    for (const job of simJobs) {
+      if (await job?.isActive()) {
+        if (job?.data.pid) process.kill(job?.data.pid)
+        return { data: true, message: 'Success' }
+      } else if (await job?.isWaiting()) {
+        job?.remove()
+        return { data: true, message: 'Success' }
+      }
+    }
+    return { data: true, message: 'success' }
+  })
+)
+
+router.post('/retrySimulation', async (req, res) =>
+  commonAsyncHandler(req, res, async (r) => {
+    const { simId } = r.body
+    const cmdQueue = getUserQueue('DSE').queue
+    const allJobs = await cmdQueue.getJobs(allJobTypes)
+    const simJobs = allJobs.filter((job) => job.data.simulationId === simId)
+    for (const job of simJobs) {
+      if (await job?.isFailed()) {
+        job?.retry()
+      }
+    }
+    return { data: true, message: 'success' }
+  })
+)
 
 export { router as ApiRouter }
