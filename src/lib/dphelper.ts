@@ -5,30 +5,64 @@ import parse = require('csv-parse/lib/sync')
 import { CSVRecord, DPFile, DPRange, DPSet, IDPSetList } from './types'
 import { setJsonValue, toCSV } from './common'
 
-export class DPSetList implements IDPSetList {
+/**
+ * A set of DPSet, meaning a simulation with different job of different dpset
+ */ export class DPSetList implements IDPSetList {
   keys: Array<string>
   data: Array<DPSet>
+
   constructor (keys: Array<string>, data: Array<DPSet>) {
     this.keys = keys
     this.data = data
   }
 
-  desProduct (dpRange: DPRange): DPSetList {
-    if (this.keys.indexOf(dpRange.key) !== -1) return this
-    this.keys.push(dpRange.key)
+  // cartProduct (dpRange: DPRange): DPSetList {
+  //   if (this.keys.indexOf(dpRange.key) !== -1) return this
+  //   this.keys.push(dpRange.key)
+  //   if (this.data.length <= 0) {
+  //     for (const i in dpRange.value) {
+  //       const newObj: DPSet = {}
+  //       newObj[dpRange.key] = dpRange.value[i]
+  //       this.data.push(newObj)
+  //     }
+  //   } else {
+  //     const newData: Array<DPSet> = []
+  //     for (const obj of this.data) {
+  //       for (const j in dpRange.value) {
+  //         const cpObj = { ...obj }
+  //         cpObj[dpRange.key] = dpRange.value[j]
+  //         newData.push(cpObj)
+  //       }
+  //     }
+  //     this.data = newData
+  //   }
+  //   return this
+  // }
+
+  cartProduct (...dpRanges: DPRange[]): DPSetList {
+    let minLength = dpRanges[0].value.length
+    for (const dpRange of dpRanges) {
+      if (this.keys.indexOf(dpRange.key) !== -1) continue
+      if (dpRange.value.length < minLength) minLength = dpRange.value.length
+      this.keys.push(dpRange.key)
+    }
+
     if (this.data.length <= 0) {
-      for (const i in dpRange.value) {
+      for (let i = 0; i < minLength; i++) {
         const newObj: DPSet = {}
-        newObj[dpRange.key] = dpRange.value[i]
+        for (const dpRange of dpRanges) {
+          newObj[dpRange.key] = dpRange.value[i]
+        }
         this.data.push(newObj)
       }
     } else {
       const newData: Array<DPSet> = []
-      for (const i in this.data) {
-        const obj = this.data[i]
-        for (const j in dpRange.value) {
+      for (const obj of this.data) {
+        for (let i = 0; i < minLength; i++) {
           const cpObj = { ...obj }
-          cpObj[dpRange.key] = dpRange.value[j]
+          for (const dpRange of dpRanges) {
+            cpObj[dpRange.key] = dpRange.value[i]
+          }
           newData.push(cpObj)
         }
       }

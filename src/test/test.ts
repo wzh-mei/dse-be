@@ -1,16 +1,27 @@
 import { aggregateDatas } from '../lib/datahelper'
+import { DPSetList } from '../lib/dphelper'
 import Logger from '../lib/logger'
 
-// const ijr = {
-//   key: 'streams.0.ops.1.inject_rate',
-//   value: [0.1, 0.11, 0.12]
-// }
+const ijr1 = {
+  key: 'streams.0.ops.1.inject_rate',
+  value: [0.1, 0.11, 0.12, 0.13]
+}
 
-// // const bs = { key: 'streams.0.batch_size', value: [-1, 1] }
+const ijr2 = {
+  key: 'streams.0.ops.0.inject_rate',
+  value: [0.2, 0.21, 0.22]
+}
+
+const dsl = new DPSetList([], [])
+const bs = { key: 'streams.0.batch_size', value: [-1, 1] }
+
+dsl.cartProduct(ijr1, ijr2).cartProduct(bs)
+
+Logger.debug(dsl)
 
 // const genStreamsRes = new DPSetList([], [])
 
-// genStreamsRes.desProduct(ijr)
+// genStreamsRes.cartProduct(ijr)
 // const genedFiles = generateDPInputFiles(
 //   '../extra/stream/gen-streams',
 //   '../extra/stream/stream_core_4c_to_all.json',
@@ -29,7 +40,7 @@ import Logger from '../lib/logger'
 // //   value: [0.06, 0.07]
 // // }
 // const dpset = new DPSetList([], [])
-// dpset.desProduct(dp3)
+// dpset.cartProduct(dp3)
 
 // const genedDpCSVs = generateDPCSVFiles(
 //   '../extra/dps/gen',
@@ -105,7 +116,7 @@ import Logger from '../lib/logger'
 // const dp1: DPRange = { key: 'DP_EGR_ARB_PHASE', value: [0.04, 0.05, 0.06] }
 // const dp2: DPRange = { key: 'DP_IGR_ARB_PHASE', value: [0.03, 0.07, 0.08] }
 
-// res.desProduct(a).desProduct(b)
+// res.cartProduct(a).cartProduct(b)
 
 // const genedFiles = generateDPInputFiles(
 //   workSpaceFilePath,
@@ -117,9 +128,9 @@ import Logger from '../lib/logger'
 //
 
 // dpset
-//   .desProduct(dp1)
-//   .desProduct(dp2)
-//   .desProduct(dp3)
+//   .cartProduct(dp1)
+//   .cartProduct(dp2)
+//   .cartProduct(dp3)
 
 // const genedDpCSVs = generateDPCSVFiles(
 //   '../extra/dps/gen',
@@ -143,16 +154,16 @@ import Logger from '../lib/logger'
 //   'Total BW'
 // )
 
-const ans = aggregateDatas(
-  [
-    '/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/0',
-    '/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/1',
-    '/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/2'
-  ],
-  'sim_param.json',
-  'received_packet_statistic.csv',
-  'layer IV port 0',
-  'Total BW'
-)
+// const ans = aggregateDatas(
+//   [
+//     '/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/0',
+//     '/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/1',
+//     '/home/maywzh/Workspace/dse-be/gen/run/sim0-1640814214280/2'
+//   ],
+//   'sim_param.json',
+//   'received_packet_statistic.csv',
+//   'layer IV port 0',
+//   'Total BW'
+// )
 
-Logger.debug(ans)
+// Logger.debug(ans)

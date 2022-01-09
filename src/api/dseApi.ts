@@ -27,7 +27,7 @@ import { Request, Response } from 'express'
 import type {
   DPType,
   DPRange,
-  paramInfo,
+  ParamInfo,
   JobInfo,
   SimulationStatInfo
 } from '../lib/types'
@@ -61,7 +61,7 @@ const paramToObj = (paramsStr: string) => {
     .trim()
     .split(' ')
     .map((x) => x.replace(/^-./, ''))
-  const obj: paramInfo = {}
+  const obj: ParamInfo = {}
   for (const paramKV of paramKVs) {
     const [key, value] = paramKV.split('=')
     obj[key] = value
@@ -245,7 +245,7 @@ router.post('/createJobs', async (req: Request, res: Response) => {
                   key: fileParam,
                   value: simParams[param][fileParam]
                 }
-                paramSetList.desProduct(paramFileParam)
+                paramSetList.cartProduct(paramFileParam)
               }
             }
             const genedParamFiles = generateDPInputFiles(
@@ -260,13 +260,102 @@ router.post('/createJobs', async (req: Request, res: Response) => {
               key: param,
               value: genedParamFiles
             }
-            dpset.desProduct(dp)
+            dpset.cartProduct(dp)
           } else {
             const dp: DPRange = {
               key: param,
               value: valueRange
             }
-            dpset.desProduct(dp)
+            dpset.cartProduct(dp)
+          }
+        }
+      }
+    }
+    const genDPs = await generateDPCSVFiles(
+      dpcsvGenerateDir,
+      `${simName}-${simTime.getTime()}`,
+      templateDPpath,
+      dpcsvGenerateTemplateNamePrefix,
+      dpset
+    )
+    const simId = uuidv4()
+    const genSims = await generateSimulation(
+      workQueueName,
+      simulationRunDir,
+      simId,
+      simName,
+      simTime,
+      exePath,
+      genDPs,
+      appDependencyDirname,
+      cmsParamObj
+    )
+    return apiResponse(res)(genSims)
+  } catch (e: any) {
+    return apiError(res)((e as Error).message, e as Error)
+  }
+})
+
+router.post('/createSimulation', async (req: Request, res: Response) => {
+  try {
+    const simParams = req.body
+    const exeName = simParams.APP_NAME
+    const simTime = new Date()
+    const cmsParams = simParams.CMD_PARAM
+    const cmsParamObj = paramToObj(cmsParams)
+    const dpcsvName = simParams.DPCSV_NAME
+    const simName =
+      simParams.SIM_NAME || simTime.toISOString().replace(/:/g, '.')
+    const exePath = path.resolve(appUploadDir, exeName)
+    const templateDPpath = path.join(dpcsvUploadDir, dpcsvName)
+    const dpset = new DPSetList([], [])
+    if (!fs.existsSync(exePath)) {
+      Logger.error('cannot find uploaded executable program')
+      return apiError(res)('cannot find uploaded executable program')
+    }
+    if (!fs.existsSync(templateDPpath)) {
+      Logger.error('cannot find uploaded DPCSV file')
+      return apiError(res)('cannot find uploaded DPCSV file')
+    }
+
+    for (const param in simParams) {
+      const valueRange: Array<DPType> = simParams[param]
+      if (param !== 'DPCSV_NAME') {
+        if (typeof simParams[param] === 'object') {
+          if (simParams[param].FILE_NAME !== undefined) {
+            const paramFilePath = path.resolve(
+              paramfileUploadDir,
+              simParams[param].FILE_NAME
+            )
+            const paramSetList = new DPSetList([], [])
+            for (const fileParam in simParams[param]) {
+              if (fileParam !== 'FILE_NAME') {
+                const paramFileParam: DPRange = {
+                  key: fileParam,
+                  value: simParams[param][fileParam]
+                }
+                paramSetList.cartProduct(paramFileParam)
+              }
+            }
+            const genedParamFiles = generateDPInputFiles(
+              paramfileGenerateDir,
+              simName,
+              paramFilePath,
+              paramfileGenerateTemplateNamePrefix,
+              param,
+              paramSetList
+            )
+            const dp: DPRange = {
+              key: param,
+              value: genedParamFiles
+            }
+            dpset.cartProduct(dp)
+          } else {
+            const dp: DPRange = {
+              key: param,
+              value: valueRange
+            }
+            dpset.cartProduct(dp)
           }
         }
       }

@@ -1,9 +1,11 @@
+// design parameter of file type
 export type DPFile = {
   param: { [key: string]: any }
   file: string
   dpName: string
 }
 
+// Valid design parameter types
 export type DPType = string | number | boolean | DPFile
 
 // type treeNodeTypesObj = {
@@ -12,28 +14,30 @@ export type DPType = string | number | boolean | DPFile
 
 // type treeDataType = treeNodeType[]
 
+/**
+ * A set of design parameters
+ */
 export type DPSet = {
   [key: string]: DPType
 }
 
+/**
+ * Design parameter range
+ * @key Design parameter name
+ * @value Design parameter value range
+ */
 export type DPRange = {
   key: string
   value: Array<DPType>
 }
 
-// export type IDPFileList {
-//   keys: Array<string>
-//   data: Array<DPFile>
-// }
-
-export type FileDPSetDict = {
-  [key: string]: DPSet
-}
-
+/**
+ * A set of DPSet, meaning a simulation with different job of different dpset
+ */
 export interface IDPSetList {
   keys: Array<string>
   data: Array<DPSet>
-  desProduct: (arg0: DPRange) => IDPSetList
+  cartProduct: (arg0: DPRange) => IDPSetList
 }
 
 export type DataStat = {
@@ -43,7 +47,7 @@ export type DataStat = {
 
 export type CSVRecord = { [key: string]: any }
 
-export type paramInfo = { [key: string]: string }
+export type ParamInfo = { [key: string]: string }
 
 export type JobInfo = {
   id: any
