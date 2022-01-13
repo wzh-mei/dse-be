@@ -1,15 +1,15 @@
 /* eslint-disable no-eval */
 import { CSVRecord, DPSet, DPType } from './types'
 import * as fs from 'fs'
-import parse = require('csv-parse/lib/sync')
 import { Request, Response } from 'express'
 import Logger from './logger'
+const parse = require('csv-parse/lib/sync')
 
 export function jsonPathTranslate (jPath: string): string {
   if (!(jPath.startsWith('[') && jPath.endsWith(']'))) {
     jPath = jPath
       .split('.')
-      .map((x) => {
+      .map(x => {
         return `["${x}"]`
       })
       .join('')
@@ -55,23 +55,27 @@ export function toCSV (records: CSVRecord[]): string {
   records.forEach((record: any) => {
     csv +=
       header
-        .map((key) => (record[key].length <= 0 ? '""' : record[key]))
+        .map(key => (record[key].length <= 0 ? '""' : record[key]))
         .join(',') + '\n'
   })
   return csv
 }
 
-export const apiResponse =
-  (res: Response, status = 200) =>
-    (data: any, success?: boolean, errorMsg?: string, error?: Error) => {
-      return res.status(status).json(data)
-    }
+export const apiResponse = (res: Response, status = 200) => (
+  data: any,
+  success?: boolean,
+  errorMsg?: string,
+  error?: Error
+) => {
+  return res.status(status).json(data)
+}
 
-export const apiError =
-  (res: Response, status = 500) =>
-    (errorMsg: string, error?: Error) => {
-      return res.status(status).json({ errorMsg, error })
-    }
+export const apiError = (res: Response, status = 500) => (
+  errorMsg: string,
+  error?: Error
+) => {
+  return res.status(status).json({ errorMsg, error })
+}
 
 export const commonHandler = (
   req: Request,

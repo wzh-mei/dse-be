@@ -6,7 +6,7 @@ import * as os from 'os'
 import * as Redis from 'ioredis'
 import * as dotenv from 'dotenv'
 import Logger from './logger'
-import { concurrencyFactor } from './config'
+import config from './config'
 
 dotenv.config()
 
@@ -73,7 +73,7 @@ class UserQueue {
         await p
       },
       {
-        concurrency: Math.floor(os.cpus().length * concurrencyFactor),
+        concurrency: Math.floor(os.cpus().length * config.concurrencyFactor),
         connection
       }
     )

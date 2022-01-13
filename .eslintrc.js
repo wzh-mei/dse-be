@@ -1,11 +1,9 @@
 module.exports = {
   env: {
-    browser: true,
+    browser: false,
     es6: true
   },
-  extends: [
-    'standard'
-  ],
+  extends: ['standard'],
   globals: {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly'
@@ -15,9 +13,6 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: 'module'
   },
-  plugins: [
-    '@typescript-eslint'
-  ],
-  rules: {
-  }
+  plugins: ['@typescript-eslint'],
+  rules: {}
 }

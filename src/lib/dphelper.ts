@@ -1,9 +1,9 @@
 /* eslint-disable no-eval */
 import * as fs from 'fs'
 import * as path from 'path'
-import parse = require('csv-parse/lib/sync')
 import { CSVRecord, DPFile, DPRange, DPSet, IDPSetList } from './types'
 import { setJsonValue, toCSV } from './common'
+const parse = require('csv-parse/lib/sync')
 
 /**
  * A set of DPSet, meaning a simulation with different job of different dpset

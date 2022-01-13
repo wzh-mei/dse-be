@@ -3,6 +3,8 @@ import * as path from 'path'
 import * as fs from 'fs'
 import Logger from './logger'
 
+require('dotenv').config()
+
 const readIni = (iniPath: string) => {
   Logger.info(`Load config file from ${iniPath}`)
   if (!fs.existsSync(iniPath)) {
@@ -16,7 +18,7 @@ const readIni = (iniPath: string) => {
 }
 
 const iniPath =
-  process.env.CONFIG || path.resolve(__dirname, '../../config/config.ini')
+  process.env.CONFIG || path.resolve(__dirname, './config.ini')
 
 const iniConf = readIni(iniPath)
 const dpcsvUploadDir = iniConf?.common.dpcsvUploadDir
@@ -110,7 +112,17 @@ const downloadDataDir = iniConf?.common.downloadDataDir
   ? iniConf.common.downloadDataDir
   : 'gen/download/data'
 
-export {
+const PORT = process.env.PORT ? Number(process.env.PORT) : 8089
+const HOST = process.env.HOST || '0.0.0.0'
+const ProdMode = process.env.NODE_ENV
+
+const username = process.env.workQueueName || 'DSE'
+
+const config = {
+  HOST,
+  PORT,
+  ProdMode,
+  username,
   dpcsvUploadDir,
   dpcsvGenerateDir,
   dpcsvGenerateTemplateNamePrefix,
@@ -130,3 +142,5 @@ export {
   downloadDataDir,
   concurrencyFactor
 }
+
+export default config

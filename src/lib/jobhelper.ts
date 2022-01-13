@@ -3,7 +3,7 @@ import { Job } from 'bullmq'
 import * as fs from 'fs'
 import * as path from 'path'
 import { DPFile } from './types'
-import { paramFileName } from './config'
+import config from './config'
 
 /**
  * Generate A job in one simulation
@@ -46,7 +46,7 @@ export async function generateSimulationJob (
       'dir'
     )
   }
-  fs.writeFileSync(`${cwd}/${paramFileName}`, JSON.stringify(dpCSV.param))
+  fs.writeFileSync(`${cwd}/${config.paramFileName}`, JSON.stringify(dpCSV.param))
   const dpCSVPath = path.resolve(dpCSV.file)
   let args = [`${exePath}`, `--cf-dp-values-file=${dpCSVPath}`]
   for (const paramName in params) {

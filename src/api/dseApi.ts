@@ -6,23 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import * as decompress from 'decompress'
 import { zip } from 'zip-a-folder'
 
-import {
-  dpcsvUploadDir,
-  dpcsvGenerateDir,
-  dpcsvGenerateTemplateNamePrefix,
-  paramfileUploadDir,
-  paramfileGenerateDir,
-  paramfileGenerateTemplateNamePrefix,
-  workQueueName,
-  appUploadDir,
-  tmpUploadDir,
-  appDependencyDirname,
-  simulationRunDir,
-  simulationBinDir,
-  downloadJobZipDir,
-  paramFileName,
-  downloadDataDir
-} from '../lib/config'
+import config from '../lib/config'
 import { Request, Response } from 'express'
 import type {
   DPType,
@@ -99,7 +83,7 @@ const returnJob = async (
 }
 
 router.post('/uploadExe', (req: Request, res: Response) => {
-  const upload = multer({ dest: appUploadDir }).single('file')
+  const upload = multer({ dest: config.appUploadDir }).single('file')
   upload(req, res, (err) => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
@@ -122,7 +106,7 @@ router.post('/uploadExe', (req: Request, res: Response) => {
 })
 
 router.post('/uploadExeZip', (req: Request, res: Response) => {
-  const upload = multer({ dest: appUploadDir }).single('file')
+  const upload = multer({ dest: config.appUploadDir }).single('file')
   upload(req, res, async (err) => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
@@ -134,7 +118,7 @@ router.post('/uploadExeZip', (req: Request, res: Response) => {
     const fileRealPath = `${fileInfo.path}.zip`
     fs.renameSync(fileInfo.path, fileRealPath)
     try {
-      const files = await decompress(fileRealPath, tmpUploadDir)
+      const files = await decompress(fileRealPath, config.tmpUploadDir)
       if (files.length <= 0) throw new Error('No file in zip')
 
       const exeFiles = files.filter((f) => f.path.endsWith('.exe'))
@@ -151,12 +135,12 @@ router.post('/uploadExeZip', (req: Request, res: Response) => {
       const folderName = files[0].path.split('/')[0]
       const newFolderName = `${folderName}-${new Date().getTime()}`
       fs.cpSync(
-        `${tmpUploadDir}/${folderName}`,
-        `${simulationBinDir}/${newFolderName}`,
+        `${config.tmpUploadDir}/${folderName}`,
+        `${config.simulationBinDir}/${newFolderName}`,
         { recursive: true }
       )
       const newExeFile = exeFile.path.replace(folderName, newFolderName)
-      fs.chmodSync(path.resolve(simulationBinDir, newExeFile), '0711')
+      fs.chmodSync(path.resolve(config.simulationBinDir, newExeFile), '0711')
       return apiResponse(res)({
         filename: newExeFile,
         type: 'dir'
@@ -168,7 +152,7 @@ router.post('/uploadExeZip', (req: Request, res: Response) => {
 })
 
 router.post('/uploadDPCSV', (req: Request, res: Response) => {
-  const upload = multer({ dest: dpcsvUploadDir }).single('file')
+  const upload = multer({ dest: config.dpcsvUploadDir }).single('file')
   upload(req, res, (err) => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
@@ -188,7 +172,7 @@ router.post('/uploadDPCSV', (req: Request, res: Response) => {
 })
 
 router.post('/uploadConfigFile', (req: Request, res: Response) => {
-  const upload = multer({ dest: paramfileUploadDir }).single('file')
+  const upload = multer({ dest: config.paramfileUploadDir }).single('file')
   upload(req, res, (err) => {
     if (err) {
       return apiError(res)('An error occurred uploading files', err)
@@ -217,8 +201,8 @@ router.post('/createJobs', async (req: Request, res: Response) => {
     const dpcsvName = simParams.DPCSV_NAME
     const simName =
       simParams.SIM_NAME || simTime.toISOString().replace(/:/g, '.')
-    const exePath = path.resolve(appUploadDir, exeName)
-    const templateDPpath = path.join(dpcsvUploadDir, dpcsvName)
+    const exePath = path.resolve(config.appUploadDir, exeName)
+    const templateDPpath = path.join(config.dpcsvUploadDir, dpcsvName)
     const dpset = new DPSetList([], [])
     if (!fs.existsSync(exePath)) {
       Logger.error('cannot find uploaded executable program')
@@ -235,7 +219,7 @@ router.post('/createJobs', async (req: Request, res: Response) => {
         if (typeof simParams[param] === 'object') {
           if (simParams[param].FILE_NAME !== undefined) {
             const paramFilePath = path.resolve(
-              paramfileUploadDir,
+              config.paramfileUploadDir,
               simParams[param].FILE_NAME
             )
             const paramSetList = new DPSetList([], [])
@@ -249,10 +233,10 @@ router.post('/createJobs', async (req: Request, res: Response) => {
               }
             }
             const genedParamFiles = generateDPInputFiles(
-              paramfileGenerateDir,
+              config.paramfileGenerateDir,
               simName,
               paramFilePath,
-              paramfileGenerateTemplateNamePrefix,
+              config.paramfileGenerateTemplateNamePrefix,
               param,
               paramSetList
             )
@@ -272,22 +256,22 @@ router.post('/createJobs', async (req: Request, res: Response) => {
       }
     }
     const genDPs = await generateDPCSVFiles(
-      dpcsvGenerateDir,
+      config.dpcsvGenerateDir,
       `${simName}-${simTime.getTime()}`,
       templateDPpath,
-      dpcsvGenerateTemplateNamePrefix,
+      config.dpcsvGenerateTemplateNamePrefix,
       dpset
     )
     const simId = uuidv4()
     const genSims = await generateSimulation(
-      workQueueName,
-      simulationRunDir,
+      config.workQueueName,
+      config.simulationRunDir,
       simId,
       simName,
       simTime,
       exePath,
       genDPs,
-      appDependencyDirname,
+      config.appDependencyDirname,
       cmsParamObj
     )
     return apiResponse(res)(genSims)
@@ -306,8 +290,8 @@ router.post('/createSimulation', async (req: Request, res: Response) => {
     const dpcsvName = simParams.DPCSV_NAME
     const simName =
       simParams.SIM_NAME || simTime.toISOString().replace(/:/g, '.')
-    const exePath = path.resolve(appUploadDir, exeName)
-    const templateDPpath = path.join(dpcsvUploadDir, dpcsvName)
+    const exePath = path.resolve(config.appUploadDir, exeName)
+    const templateDPpath = path.join(config.dpcsvUploadDir, dpcsvName)
     const dpset = new DPSetList([], [])
     if (!fs.existsSync(exePath)) {
       Logger.error('cannot find uploaded executable program')
@@ -324,7 +308,7 @@ router.post('/createSimulation', async (req: Request, res: Response) => {
         if (typeof simParams[param] === 'object') {
           if (simParams[param].FILE_NAME !== undefined) {
             const paramFilePath = path.resolve(
-              paramfileUploadDir,
+              config.paramfileUploadDir,
               simParams[param].FILE_NAME
             )
             const paramSetList = new DPSetList([], [])
@@ -338,10 +322,10 @@ router.post('/createSimulation', async (req: Request, res: Response) => {
               }
             }
             const genedParamFiles = generateDPInputFiles(
-              paramfileGenerateDir,
+              config.paramfileGenerateDir,
               simName,
               paramFilePath,
-              paramfileGenerateTemplateNamePrefix,
+              config.paramfileGenerateTemplateNamePrefix,
               param,
               paramSetList
             )
@@ -361,22 +345,22 @@ router.post('/createSimulation', async (req: Request, res: Response) => {
       }
     }
     const genDPs = await generateDPCSVFiles(
-      dpcsvGenerateDir,
+      config.dpcsvGenerateDir,
       `${simName}-${simTime.getTime()}`,
       templateDPpath,
-      dpcsvGenerateTemplateNamePrefix,
+      config.dpcsvGenerateTemplateNamePrefix,
       dpset
     )
     const simId = uuidv4()
     const genSims = await generateSimulation(
-      workQueueName,
-      simulationRunDir,
+      config.workQueueName,
+      config.simulationRunDir,
       simId,
       simName,
       simTime,
       exePath,
       genDPs,
-      appDependencyDirname,
+      config.appDependencyDirname,
       cmsParamObj
     )
     return apiResponse(res)(genSims)
@@ -518,7 +502,7 @@ router.post('/getRunOutputFileList', (req, res) =>
       .filter(
         (filename) =>
           filename.endsWith('.csv') &&
-          filename !== `${dpcsvGenerateTemplateNamePrefix}.csv`
+          filename !== `${config.dpcsvGenerateTemplateNamePrefix}.csv`
       )
     return res
   })
@@ -542,7 +526,7 @@ router.post('/getJobOutputFileList', async (req, res) =>
       .filter(
         (filename) =>
           filename.endsWith('.csv') &&
-          filename !== `${dpcsvGenerateTemplateNamePrefix}.csv`
+          filename !== `${config.dpcsvGenerateTemplateNamePrefix}.csv`
       )
     return res
   })
@@ -560,12 +544,12 @@ router.get('/downloadJob', async (req, res) => {
   if (!fs.existsSync(runDir)) {
     return apiError(res)('Not found job run folder')
   }
-  if (!fs.existsSync(downloadJobZipDir)) {
-    fs.mkdirSync(downloadJobZipDir, { recursive: true })
+  if (!fs.existsSync(config.downloadJobZipDir)) {
+    fs.mkdirSync(config.downloadJobZipDir, { recursive: true })
   }
   if (fs.statSync(runDir).isDirectory()) {
     const folderName = runDir.split(/\\|\//).pop()
-    const zipPath = path.resolve(`${downloadJobZipDir}/${folderName}.zip`)
+    const zipPath = path.resolve(`${config.downloadJobZipDir}/${folderName}.zip`)
     zip(runDir, zipPath).then(() => {
       return res.download(zipPath)
     })
@@ -584,7 +568,7 @@ router.post('/aggregateData', async (req, res) => {
   }
   const ans = aggregateDatas(
     workDirs,
-    paramFileName,
+    config.paramFileName,
     DATA_FILE,
     DOMAIN_KEYWORD,
     DATA_KEYWORD
@@ -602,16 +586,16 @@ router.post('/downloadAggregateDataCSV', async (req, res) => {
   }
   const csvRecords = aggregateDatas(
     workDirs,
-    paramFileName,
+    config.paramFileName,
     DATA_FILE,
     DOMAIN_KEYWORD,
     DATA_KEYWORD
   )
   const csvString = toCSV(csvRecords)
-  if (!fs.existsSync(downloadDataDir)) {
-    fs.mkdirSync(downloadDataDir, { recursive: true })
+  if (!fs.existsSync(config.downloadDataDir)) {
+    fs.mkdirSync(config.downloadDataDir, { recursive: true })
   }
-  const filePath = `${downloadDataDir}/output-${new Date().getDate()}.csv`
+  const filePath = `${config.downloadDataDir}/output-${new Date().getDate()}.csv`
   fs.writeFileSync(filePath, csvString)
   return res.download(filePath)
 })

@@ -5,10 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "cd src && ts-node ./test.ts",
-    "server": "ts-node ./src/srv.ts",
-    "srv": "ts-node ./src/srv.ts",
-    "start": "ts-node ./src/srv.ts",
-    "dev": "nodemon ./src/srv.ts",
+    "start": "cross-env NODE_ENV=development ts-node ./src/srv.ts",
+    "dev": "cross-env NODE_ENV=development nodemon ./src/srv.ts",
     "wpstart": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.js",
     "wpbuild": "cross-env NODE_ENV=production webpack --config webpack.config.js"
   },
